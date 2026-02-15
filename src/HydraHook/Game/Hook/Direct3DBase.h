@@ -1,6 +1,7 @@
+/*
 MIT License
 
-Copyright (c) 2018-2026 Benjamin HÃ¶glinger-Stelzer
+Copyright (c) 2018-2026 Benjamin Höglinger-Stelzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +20,25 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+*/
+
+#pragma once
+
+#include "Window.h"
+#include <vector>
+#include <memory>
+
+
+namespace Direct3DHooking
+{
+    class Direct3DBase
+    {
+    protected:
+        std::unique_ptr<Window> temp_window;
+        virtual ~Direct3DBase() {}
+    public:
+        Direct3DBase() {}
+
+        virtual std::vector<size_t> vtable() const = 0;
+    };
+}

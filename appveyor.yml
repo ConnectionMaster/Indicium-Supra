@@ -1,35 +1,27 @@
 version: 4.0.{build}.0
-image: Visual Studio 2019
+image: Visual Studio 2022
 platform:
 - Win32
 - x64
 configuration:
 - Release_LIB
 install:
-- cmd: git submodule -q update --init
-- cmd: |
-    cd "C:\Tools\vcpkg"
-    git pull > NUL
-    .\bootstrap-vcpkg.bat > NUL
-    cd %appveyor_build_folder%
+- cmd: git submodule update --init --recursive
 before_build:
-- cmd: vcpkg integrate install
-- cmd: vcpkg update
-- cmd: vcpkg install spdlog:x86-windows-static spdlog:x64-windows-static detours:x86-windows-static detours:x64-windows-static
-- cmd: vcpkg install imgui:x86-windows-static imgui:x64-windows-static
-- ps: Invoke-WebRequest "https://downloads.nefarius.at/other/nefarius/vpatch/vpatch.exe" -OutFile vpatch.exe
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\src\Indicium-Supra\Indicium-Supra.rc" --resource.file-version --resource.product-version
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\Indicium-ImGui\Indicium-ImGui.rc" --resource.file-version --resource.product-version
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\Indicium-FW1FontWrapper\Indicium-FW1FontWrapper.rc" --resource.file-version --resource.product-version
+- cmd: .\prepare-deps.bat %PLATFORM%
+- cmd: dotnet tool install Nefarius.Tools.Vpatch --tool-path .\tools
+- cmd: .\tools\vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\src\HydraHook\HydraHook.rc" --resource.file-version --resource.product-version
+- cmd: .\tools\vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-ImGui\HydraHook-ImGui.rc" --resource.file-version --resource.product-version
+- cmd: .\tools\vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-DirectXTK\HydraHook-DirectXTK.rc" --resource.file-version --resource.product-version
 build:
-  project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
+  project: $(APPVEYOR_BUILD_FOLDER)\HydraHook.sln
 artifacts:
 - path: 'bin\**\*.dll'
-  name: Indicium-Supra
+  name: HydraHook
 deploy:
 - provider: Environment
   name: BUILDBOT
   on:
     appveyor_repo_tag: true
 cache:
-- c:\Tools\vcpkg\installed
+- vcpkg_installed

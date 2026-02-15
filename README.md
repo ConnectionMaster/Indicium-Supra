@@ -1,12 +1,12 @@
-# Indicium-Supra
+# HydraHook
 
 API-Hooking and rendering framework for DirectX-based games.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/rt4ybpwrhn22kegm?svg=true)](https://ci.appveyor.com/project/nefarius/indicium-supra) [![Discord](https://img.shields.io/discord/346756263763378176.svg)](https://discord.nefarius.at) [![Website](https://img.shields.io/website-up-down-green-red/https/docs.nefarius.at.svg?label=docs.nefarius.at)](https://docs.nefarius.at/) [![GitHub followers](https://img.shields.io/github/followers/nefarius.svg?style=social&label=Follow)](https://github.com/nefarius) [![Mastodon Follow](https://img.shields.io/mastodon/follow/109321120351128938?domain=https%3A%2F%2Ffosstodon.org%2F&style=social)](https://fosstodon.org/@Nefarius)
+[![Build status](https://ci.appveyor.com/api/projects/status/rt4ybpwrhn22kegm?svg=true)](https://ci.appveyor.com/project/nefarius/hydrahook) [![Discord](https://img.shields.io/discord/346756263763378176.svg)](https://discord.nefarius.at) [![Website](https://img.shields.io/website-up-down-green-red/https/docs.nefarius.at.svg?label=docs.nefarius.at)](https://docs.nefarius.at/) [![GitHub followers](https://img.shields.io/github/followers/nefarius.svg?style=social&label=Follow)](https://github.com/nefarius) [![Mastodon Follow](https://img.shields.io/mastodon/follow/109321120351128938?domain=https%3A%2F%2Ffosstodon.org%2F&style=social)](https://fosstodon.org/@Nefarius)
 
 ## About
 
-`Indicium-Supra` consists of a self-contained library (DLL) which exposes a minimalistic API for rendering custom content in foreign processes eliminating the need for in-depth knowledge about Direct3D and API-hooking. The most common use-case might be drawing custom overlays on top of your games. The framework takes care about pesky tasks like detecting the DirectX version the game was built for and supports runtime-hooking (no special launcher application required).
+`HydraHook` consists of a self-contained library (DLL) which exposes a minimalistic API for rendering custom content in foreign processes eliminating the need for in-depth knowledge about Direct3D and API-hooking. The most common use-case might be drawing custom overlays on top of your games. The framework takes care about pesky tasks like detecting the DirectX version the game was built for and supports runtime-hooking (no special launcher application required).
 
 ## Supported DirectX versions
 
@@ -22,40 +22,37 @@ API-Hooking and rendering framework for DirectX-based games.
 
 **Samples are currently broken on this branch due to major API redesign!**
 
-- Visual Studio **2019** ([Community Edition](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=16) is just fine)
-- [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
-- [Follow the Vcpkg Quick Start](https://github.com/Microsoft/vcpkg#quick-start) and install the following packages:
-  - `.\vcpkg install spdlog:x86-windows-static spdlog:x64-windows-static detours:x86-windows-static detours:x64-windows-static`
-  - For the ImGui sample to build you'll also need:
-    - `.\vcpkg install imgui:x86-windows-static imgui:x64-windows-static`
+- Visual Studio **2022** ([Community Edition](https://visualstudio.microsoft.com/downloads/) is free)
+- [Windows SDK](https://learn.microsoft.com/en-us/windows/apps/windows-sdk/downloads)
 
-Building should be pretty straight-forward since the dependencies get installed via [Vcpkg](https://github.com/Microsoft/vcpkg). You have multiple choices for getting things done.
+### Build steps
 
-### Visual Studio
+1. Clone the repository and initialize submodules: `git submodule update --init --recursive`
+2. Open `HydraHook.sln` in Visual Studio and build
 
-Just open the solution file `Indicium-Supra.sln` and start the build from there.
+Dependencies (spdlog, detours, imgui, directxtk) are declared in `vcpkg.json` and installed via [vcpkg](https://github.com/microsoft/vcpkg) (included as a submodule). Run `prepare-deps.bat` from a **Developer Command Prompt for VS 2022** (or x64 Native Tools Command Prompt) before the first build in Visual Studio; the build will use existing `vcpkg_installed` if present.
 
-### The lazy way
+### Pre-built binaries
 
-Now if you're really in a hurry you can [grab pre-built binaries from the buildbot](https://buildbot.nefarius.at/builds/Indicium-Supra/master/). Boom, done.
+Pre-built binaries are available from the [buildbot](https://buildbot.nefarius.at/builds/HydraHook/master/) for the `master` branch. Note: these builds may be outdated; for the latest code (including the `rework` branch), build from source.
 
 ## How to use
 
-Inject the resulting host library (e.g. `Indicium-ImGui.dll`) into the target process first using a DLL injection utility of your choice (you can ofc. [use mine as well](https://github.com/nefarius/Injector)). The following example loads the [imgui sample](samples/Indicium-ImGui):
+Inject the resulting host library (e.g. `HydraHook-ImGui.dll`) into the target process first using a DLL injection utility of your choice (you can ofc. [use mine as well](https://github.com/nefarius/Injector)). The following example loads the [imgui sample](samples/HydraHook-ImGui):
 
 ```PowerShell
-.\Injector -i -n hl2.exe Indicium-ImGui.dll
+.\Injector -i -n hl2.exe HydraHook-ImGui.dll
 ```
 
 Just make sure your host library doesn't require any external dependencies not present in the process context or you'll get a `LoadLibrary failed` error.
 
 ## Diagnostics
 
-The core library logs its progress and potential errors to the file `%TEMP%\Indicium-Supra.log`.
+The core library logs its progress and potential errors to the file `%TEMP%\HydraHook.log`.
 
 ## Demos
 
-The following screenshots show [imgui](https://github.com/ocornut/imgui) getting rendered in foreign processes using different versions of DirectX.
+The following screenshots show [imgui](https://github.com/ocornut/imgui) being rendered in foreign processes using different versions of DirectX.
 
 ### DirectX 9
 
@@ -88,7 +85,7 @@ Road Redemption, 64-Bit
 ## Sources
 
 - [DX9-Overlay-API](https://github.com/agrippa1994/DX9-Overlay-API)
-- [CREATING A RENDER TARGET IN DIRECTX11](http://www.hlsl.co.uk/blog/2014/11/19/creating-a-render-target-in-directx11)
+- [Creating a render target in DirectX 11](https://www.hlsl.co.uk/blog/2014/11/19/creating-a-render-target-in-directx11)
 - [ion RE Library](https://github.com/scen/ionlib)
-- [C# – SCREEN CAPTURE AND OVERLAYS FOR DIRECT3D 9, 10 AND 11 USING API HOOKS](http://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/)
+- [C# – Screen capture and overlays for Direct3D 9, 10 and 11 using API hooks](https://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/)
 - [HelloD3D12](https://github.com/GPUOpen-LibrariesAndSDKs/HelloD3D12)
