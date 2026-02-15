@@ -22,19 +22,19 @@ API-Hooking and rendering framework for DirectX-based games.
 
 **Samples are currently broken on this branch due to major API redesign!**
 
-- Visual Studio **2019** ([Community Edition](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=16) is just fine)
-- [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
+- Visual Studio **2022** ([Community Edition](https://visualstudio.microsoft.com/downloads/) is free)
+- [Windows SDK](https://learn.microsoft.com/en-us/windows/apps/windows-sdk/downloads)
 
 ### Build steps
 
 1. Clone the repository and initialize submodules: `git submodule update --init --recursive`
 2. Open `Indicium-Supra.sln` in Visual Studio and build
 
-Dependencies (spdlog, detours, imgui) are declared in `vcpkg.json` and installed via [vcpkg](https://github.com/Microsoft/vcpkg) (included as a submodule). Run `prepare-deps.bat` from a **Developer Command Prompt for VS** before the first build in Visual Studio; the build will use existing `vcpkg_installed` if present.
+Dependencies (spdlog, detours, imgui) are declared in `vcpkg.json` and installed via [vcpkg](https://github.com/microsoft/vcpkg) (included as a submodule). Run `prepare-deps.bat` from a **Developer Command Prompt for VS 2022** (or x64 Native Tools Command Prompt) before the first build in Visual Studio; the build will use existing `vcpkg_installed` if present.
 
-### The lazy way
+### Pre-built binaries
 
-Now if you're really in a hurry you can [grab pre-built binaries from the buildbot](https://buildbot.nefarius.at/builds/Indicium-Supra/master/). Boom, done.
+Pre-built binaries are available from the [buildbot](https://buildbot.nefarius.at/builds/Indicium-Supra/master/) for the `master` branch. Note: these builds may be outdated; for the latest code (including the `rework` branch), build from source.
 
 ## How to use
 
@@ -85,7 +85,7 @@ Road Redemption, 64-Bit
 ## Sources
 
 - [DX9-Overlay-API](https://github.com/agrippa1994/DX9-Overlay-API)
-- [CREATING A RENDER TARGET IN DIRECTX11](http://www.hlsl.co.uk/blog/2014/11/19/creating-a-render-target-in-directx11)
+- [Creating a render target in DirectX 11](https://www.hlsl.co.uk/blog/2014/11/19/creating-a-render-target-in-directx11)
 - [ion RE Library](https://github.com/scen/ionlib)
-- [C# – SCREEN CAPTURE AND OVERLAYS FOR DIRECT3D 9, 10 AND 11 USING API HOOKS](http://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/)
+- [C# – Screen capture and overlays for Direct3D 9, 10 and 11 using API hooks](https://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/)
 - [HelloD3D12](https://github.com/GPUOpen-LibrariesAndSDKs/HelloD3D12)

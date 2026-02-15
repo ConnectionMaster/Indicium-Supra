@@ -1,5 +1,5 @@
 @echo off
-REM Install vcpkg dependencies. Run this from "x64 Native Tools Command Prompt for VS"
+REM Install vcpkg dependencies. Run this from "Developer Command Prompt for VS 2022" or "x64 Native Tools Command Prompt for VS 2022"
 REM (or "Developer Command Prompt for VS") before building from Visual Studio.
 REM
 REM The first build from VS may fail with "unable to detect the active compiler"
