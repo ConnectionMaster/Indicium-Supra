@@ -4,6 +4,10 @@ DirectX 11 sample demonstrating text rendering in foreign processes.
 
 ## About
 
-This sample shows how to render text using the [FW1FontWrapper](https://github.com/gamelaster/FW1FontWrapper) library, which provides DirectWrite-based text layout and glyph caching for D3D11 render targets.
+This sample shows how to render text using [DirectXTK](https://github.com/microsoft/DirectXTK) (SpriteFont and SpriteBatch), consumed via vcpkg. It draws an overlay in D3D11 Present hooks.
 
-![Road Redemption with FW1FontWrapper overlay](https://lh3.googleusercontent.com/-DCgMGmAbCPg/Wu4Pa1hViaI/AAAAAAAABLQ/MO7bOgF3KDQLz24iWUjqP_-knr961sFMQCHMYCw/s0/RoadRedemption_2018-05-05_22-09-12.png)
+## Building
+
+1. Run `prepare-deps.bat` from a Developer Command Prompt to install vcpkg dependencies (including DirectXTK and MakeSpriteFont).
+2. Build the solution. A pre-build step generates `Arial.spritefont` from the system Arial font; the output is placed next to the DLL.
+3. Deploy the DLL and `Arial.spritefont` together when injecting into a target process.

@@ -163,7 +163,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="FW1FontWrapper.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -194,4 +193,13 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="GenerateSpriteFont" BeforeTargets="ClCompile">
+    <PropertyGroup>
+      <MakeSpriteFontExe>$(ProjectDir)..\..\vcpkg_installed\$(VcpkgTriplet)\tools\directxtk\makespritefont.exe</MakeSpriteFontExe>
+      <SpriteFontOut>$(OutDir)Arial.spritefont</SpriteFontOut>
+    </PropertyGroup>
+    <MakeDir Directories="$(OutDir)" Condition="!Exists('$(OutDir)')" />
+    <Exec Command="&quot;$(MakeSpriteFontExe)&quot; Arial &quot;$(SpriteFontOut)&quot; /FontSize:24"
+          Condition="Exists('$(MakeSpriteFontExe)')" />
+  </Target>
 </Project>

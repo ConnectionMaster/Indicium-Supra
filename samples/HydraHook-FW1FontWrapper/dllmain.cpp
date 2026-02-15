@@ -25,31 +25,45 @@ SOFTWARE.
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-#include "FW1FontWrapper.h"
-
 #include <HydraHook/Engine/HydraHookDirect3D11.h>
+#include <HydraHook/Engine/HydraHookCore.h>
 #include <cassert>
+#include <string>
 
-#ifdef _M_IX86
-#pragma comment(lib, "x86\\FW1FontWrapper.lib")
-#else
-#pragma comment(lib, "x64\\FW1FontWrapper.lib")
-#endif
-#pragma comment(lib, "dxguid.lib")
+#include <directxtk/SpriteBatch.h>
+#include <directxtk/SpriteFont.h>
+#include <directxtk/CommonStates.h>
 
+using namespace DirectX;
 
-typedef struct _FW1_CTX
+static HMODULE g_hModule = nullptr;
+
+typedef struct _DX11_TEXT_CTX
 {
-	ID3D11DeviceContext* ctx;
-	ID3D11Device* dev;
-	IFW1Factory *pFW1Factory;
-	IFW1FontWrapper *pFontWrapper;
-
-} FW1_CTX, *PFW1_CTX;
+	ID3D11Device* dev = nullptr;
+	ID3D11DeviceContext* ctx = nullptr;
+	std::unique_ptr<SpriteBatch> spriteBatch;
+	std::unique_ptr<SpriteFont> spriteFont;
+	std::unique_ptr<CommonStates> commonStates;
+} DX11_TEXT_CTX, *PDX11_TEXT_CTX;
 
 EVT_HYDRAHOOK_GAME_HOOKED EvtHydraHookGameHooked;
 EVT_HYDRAHOOK_D3D11_PRE_PRESENT EvtHydraHookD3D11PrePresent;
 EVT_HYDRAHOOK_GAME_UNHOOKED EvtHydraHookGamePostUnhooked;
+
+static std::wstring GetFontPath()
+{
+	wchar_t path[MAX_PATH];
+	if (GetModuleFileNameW(g_hModule, path, MAX_PATH) == 0)
+		return L"";
+
+	std::wstring fontPath(path);
+	const size_t lastSlash = fontPath.find_last_of(L"\\/");
+	if (lastSlash != std::wstring::npos)
+		fontPath = fontPath.substr(0, lastSlash + 1);
+	fontPath += L"Arial.spritefont";
+	return fontPath;
+}
 
 /**
  * \fn	BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
@@ -72,6 +86,8 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 	// We don't need to get notified in thread attach- or detachments
 	// 
 	DisableThreadLibraryCalls(static_cast<HMODULE>(hInstance));
+
+	g_hModule = static_cast<HMODULE>(hInstance);
 
 	HYDRAHOOK_ENGINE_CONFIG cfg;
 	HYDRAHOOK_ENGINE_CONFIG_INIT(&cfg);
@@ -103,6 +119,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 		// Tears down the engine. Graceful shutdown, frees resources etc.
 		// 
 		(void)HydraHookEngineDestroy(static_cast<HMODULE>(hInstance));
+		g_hModule = nullptr;
 
 		break;
 	default:
@@ -125,7 +142,7 @@ void EvtHydraHookGameHooked(
 	// 
 	assert(GameVersion == HydraHookDirect3DVersion11);
 
-	PFW1_CTX pCtx = nullptr;
+	PDX11_TEXT_CTX pCtx = nullptr;
 
 	//
 	// Allocate context memory
@@ -133,8 +150,11 @@ void EvtHydraHookGameHooked(
 	assert(HydraHookEngineAllocCustomContext(
 		EngineHandle,
 		(PVOID*)&pCtx,
-		sizeof(FW1_CTX)
+		sizeof(DX11_TEXT_CTX)
 	) == HYDRAHOOK_ERROR_NONE);
+
+	// Placement new to construct the struct (it has non-trivial members)
+	new (pCtx) DX11_TEXT_CTX();
 
 	HYDRAHOOK_D3D11_EVENT_CALLBACKS d3d11;
 	HYDRAHOOK_D3D11_EVENT_CALLBACKS_INIT(&d3d11);
@@ -149,12 +169,9 @@ void EvtHydraHookGameHooked(
 // 
 void EvtHydraHookGamePostUnhooked(PHYDRAHOOK_ENGINE EngineHandle)
 {
-	const PFW1_CTX pCtx = PFW1_CTX(HydraHookEngineGetCustomContext(EngineHandle));
-
-	if (pCtx->pFontWrapper)
-		pCtx->pFontWrapper->Release();
-	if (pCtx->pFW1Factory)
-		pCtx->pFW1Factory->Release();
+	PDX11_TEXT_CTX pCtx = PDX11_TEXT_CTX(HydraHookEngineGetCustomContext(EngineHandle));
+	if (pCtx)
+		pCtx->~DX11_TEXT_CTX();
 }
 
 //
@@ -167,12 +184,14 @@ void EvtHydraHookD3D11PrePresent(
 	PHYDRAHOOK_EVT_PRE_EXTENSION     Extension
 )
 {
-	// Grab shared context
-	const PFW1_CTX pCtx = PFW1_CTX(Extension->Context);
-	ID3D11Device *pDeviceTmp;
+	const PDX11_TEXT_CTX pCtx = PDX11_TEXT_CTX(Extension->Context);
+	ID3D11Device* pDeviceTmp = nullptr;
 
-	if (!pCtx->pFW1Factory)
-		(void)FW1CreateFactory(FW1_VERSION, &pCtx->pFW1Factory);
+	if (FAILED(D3D11_DEVICE_FROM_SWAPCHAIN(pSwapChain, &pDeviceTmp)))
+	{
+		HydraHookEngineLogError("Failed to get device pointer from swapchain");
+		return;
+	}
 
 	/*
 	 * Swapchain associated Device and Context pointers can become invalid
@@ -180,27 +199,68 @@ void EvtHydraHookD3D11PrePresent(
 	 * does when switching cores) so compare to ones grabbed earlier and
 	 * re-request both if necessary.
 	 */
-	if (FAILED(D3D11_DEVICE_FROM_SWAPCHAIN(pSwapChain, &pDeviceTmp))) {
-		HydraHookEngineLogError("Failed to get device pointer from swapchain");
-		return;
-	}
-	else if (pCtx->dev != pDeviceTmp) {
+	if (pCtx->dev != pDeviceTmp)
+	{
+		pCtx->spriteBatch.reset();
+		pCtx->spriteFont.reset();
+		pCtx->commonStates.reset();
+
 		D3D11_DEVICE_IMMEDIATE_CONTEXT_FROM_SWAPCHAIN(
 			pSwapChain,
 			&pCtx->dev,
 			&pCtx->ctx
 		);
 
-		(void)pCtx->pFW1Factory->CreateFontWrapper(pCtx->dev, L"Arial", &pCtx->pFontWrapper);
+		const std::wstring fontPath = GetFontPath();
+		if (fontPath.empty() || GetFileAttributesW(fontPath.c_str()) == INVALID_FILE_ATTRIBUTES)
+		{
+			HydraHookEngineLogError("Arial.spritefont not found next to DLL. Run MakeSpriteFont on arial.ttf and place output alongside the DLL.");
+			return;
+		}
+
+		try
+		{
+			pCtx->commonStates = std::make_unique<CommonStates>(pCtx->dev);
+			pCtx->spriteBatch = std::make_unique<SpriteBatch>(pCtx->ctx);
+			pCtx->spriteFont = std::make_unique<SpriteFont>(pCtx->dev, fontPath.c_str());
+		}
+		catch (const std::exception& e)
+		{
+			HydraHookEngineLogError("Failed to create DirectXTK resources: %s", e.what());
+			return;
+		}
 	}
 
-	pCtx->pFontWrapper->DrawString(
-		pCtx->ctx,
-		L"Injected via HydraHook by Nefarius",// String
-		50.0f,// Font size
-		15.0f,// X position
-		30.0f,// Y position
-		0xff0099ff,// Text color, 0xAaBbGgRr
-		FW1_RESTORESTATE// Flags (for example FW1_RESTORESTATE to keep context states unchanged)
+	ID3D11Texture2D* pBackBuffer = nullptr;
+	if (FAILED(D3D11_BACKBUFFER_FROM_SWAPCHAIN(pSwapChain, &pBackBuffer)))
+	{
+		HydraHookEngineLogError("Failed to get back buffer from swapchain");
+		return;
+	}
+
+	ID3D11RenderTargetView* pRTV = nullptr;
+	HRESULT hr = pCtx->dev->CreateRenderTargetView(pBackBuffer, nullptr, &pRTV);
+	pBackBuffer->Release();
+
+	if (FAILED(hr) || !pRTV)
+	{
+		HydraHookEngineLogError("Failed to create render target view");
+		return;
+	}
+
+	pCtx->ctx->OMSetRenderTargets(1, &pRTV, nullptr);
+
+	pCtx->spriteBatch->Begin(SpriteSortMode_Deferred, pCtx->commonStates->AlphaBlend());
+	pCtx->spriteFont->DrawString(
+		pCtx->spriteBatch.get(),
+		L"Injected via HydraHook by Nefarius",
+		XMFLOAT2(15.0f, 30.0f),
+		Colors::White,
+		0.0f,
+		XMFLOAT2(0, 0),
+		1.0f
 	);
+	pCtx->spriteBatch->End();
+
+	pRTV->Release();
 }
