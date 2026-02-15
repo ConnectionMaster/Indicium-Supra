@@ -26,7 +26,7 @@ SOFTWARE.
 #include "DXGI.h"
 #include "Exceptions.hpp"
 
-using namespace HYDRAHOOK::Core::Exceptions;
+using namespace HydraHook::Core::Exceptions;
 
 Direct3D11Hooking::Direct3D11::Direct3D11() :
 	pd3dDevice(nullptr), pd3dDeviceContext(nullptr), pSwapChain(nullptr)

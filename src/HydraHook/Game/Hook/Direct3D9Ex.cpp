@@ -25,7 +25,7 @@ SOFTWARE.
 #include "Direct3D9Ex.h"
 #include "Exceptions.hpp"
 
-using namespace HYDRAHOOK::Core::Exceptions;
+using namespace HydraHook::Core::Exceptions;
 
 Direct3D9Hooking::Direct3D9Ex::Direct3D9Ex() :
 	d3d9_ex(nullptr), d3d9_device_ex(nullptr)

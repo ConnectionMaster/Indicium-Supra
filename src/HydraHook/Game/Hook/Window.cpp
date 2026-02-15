@@ -26,7 +26,7 @@ SOFTWARE.
 #include <utility>
 #include "Exceptions.hpp"
 
-using namespace HYDRAHOOK::Core::Exceptions;
+using namespace HydraHook::Core::Exceptions;
 
 Window::Window(std::string windowClassName) : temp_window(nullptr), window_class_name(std::move(windowClassName))
 {

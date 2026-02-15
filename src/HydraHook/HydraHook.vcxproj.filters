@@ -105,19 +105,19 @@
     <ClInclude Include="Global.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\HYDRAHOOK\Engine\HYDRAHOOKCore.h">
+    <ClInclude Include="..\..\include\HydraHook\Engine\HydraHookCore.h">
       <Filter>Shared\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\HYDRAHOOK\Engine\HYDRAHOOKDirect3D9.h">
+    <ClInclude Include="..\..\include\HydraHook\Engine\HydraHookDirect3D9.h">
       <Filter>Shared\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\HYDRAHOOK\Engine\HYDRAHOOKDirect3D10.h">
+    <ClInclude Include="..\..\include\HydraHook\Engine\HydraHookDirect3D10.h">
       <Filter>Shared\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\HYDRAHOOK\Engine\HYDRAHOOKDirect3D11.h">
+    <ClInclude Include="..\..\include\HydraHook\Engine\HydraHookDirect3D11.h">
       <Filter>Shared\Engine</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\HYDRAHOOK\Engine\HYDRAHOOKDirect3D12.h">
+    <ClInclude Include="..\..\include\HydraHook\Engine\HydraHookDirect3D12.h">
       <Filter>Shared\Engine</Filter>
     </ClInclude>
     <ClInclude Include="Engine.h" />
@@ -128,7 +128,7 @@
     <ClInclude Include="Game\Hook\AudioRenderClientHook.h">
       <Filter>Game\Hook\CoreAudio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\HYDRAHOOK\Engine\HYDRAHOOKCoreAudio.h">
+    <ClInclude Include="..\..\include\HydraHook\Engine\HydraHookCoreAudio.h">
       <Filter>Shared\Engine</Filter>
     </ClInclude>
   </ItemGroup>

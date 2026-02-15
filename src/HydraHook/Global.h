@@ -29,7 +29,7 @@ SOFTWARE.
 
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 
-namespace HYDRAHOOK
+namespace HydraHook
 {
     namespace Core
     {

@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include <stdexcept>
 
-namespace HYDRAHOOK
+namespace HydraHook
 {
     namespace Core
     {

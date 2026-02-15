@@ -105,8 +105,8 @@ typedef struct _HYDRAHOOK_ENGINE
 } HYDRAHOOK_ENGINE;
 
 #define INVOKE_HYDRAHOOK_GAME_HOOKED(_engine_, _version_)    \
-                                    (_engine_->EngineConfig.EvtHYDRAHOOKGameHooked ? \
-                                    _engine_->EngineConfig.EvtHYDRAHOOKGameHooked(_engine_, _version_) : \
+                                    (_engine_->EngineConfig.EvtHydraHookGameHooked ? \
+                                    _engine_->EngineConfig.EvtHydraHookGameHooked(_engine_, _version_) : \
                                     (void)0)
 
 #define INVOKE_D3D9_CALLBACK(_engine_, _callback_, ...)     \

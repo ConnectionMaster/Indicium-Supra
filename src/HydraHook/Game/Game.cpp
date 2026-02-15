@@ -100,7 +100,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
     static auto engine = reinterpret_cast<PHYDRAHOOK_ENGINE>(Params);
     const auto& config = engine->EngineConfig;
 
-    logger->info("Library loaded into {}", HYDRAHOOK::Core::Util::process_name());
+    logger->info("Library loaded into {}", HydraHook::Core::Util::process_name());
 
     logger->info("Library enabled");
 
@@ -188,8 +188,8 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 		// avoid cleaning up multiple times
 		postQuitMessageHook.remove();
 
-        if (engine->EngineConfig.EvtHYDRAHOOKGamePreExit) {
-            engine->EngineConfig.EvtHYDRAHOOKGamePreExit(engine);
+        if (engine->EngineConfig.EvtHydraHookGamePreExit) {
+            engine->EngineConfig.EvtHydraHookGamePreExit(engine);
         }
 
         //
@@ -250,8 +250,8 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 		// avoid cleaning up multiple times
 		exitProcessHook.remove();
 
-		if (engine->EngineConfig.EvtHYDRAHOOKGamePreExit) {
-			engine->EngineConfig.EvtHYDRAHOOKGamePreExit(engine);
+		if (engine->EngineConfig.EvtHydraHookGamePreExit) {
+			engine->EngineConfig.EvtHydraHookGamePreExit(engine);
 		}
 
 		//
@@ -325,14 +325,14 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
             {
                 Logger::get("HookDX9").information("++ IDirect3DDevice9::Present called");
 
-                INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HYDRAHOOKDirect3DVersion9);
+                INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HydraHookDirect3DVersion9);
             });
 
-            INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PrePresent, dev, a1, a2, a3, a4);
+            INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PrePresent, dev, a1, a2, a3, a4);
 
             auto ret = present9Hook.callOrig(dev, a1, a2, a3, a4);
 
-            INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PostPresent, dev, a1, a2, a3, a4);
+            INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PostPresent, dev, a1, a2, a3, a4);
 
             return ret;
         });
@@ -347,11 +347,11 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
             static std::once_flag flag;
             std::call_once(flag, []() { Logger::get("HookDX9").information("++ IDirect3DDevice9::Reset called"); });
 
-            INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PreReset, dev, pp);
+            INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PreReset, dev, pp);
 
             auto ret = reset9Hook.callOrig(dev, pp);
 
-            INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PostReset, dev, pp);
+            INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PostReset, dev, pp);
 
             return ret;
         });
@@ -365,11 +365,11 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
             static std::once_flag flag;
             std::call_once(flag, []() { Logger::get("HookDX9").information("++ IDirect3DDevice9::EndScene called"); });
 
-            INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PreEndScene, dev);
+            INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PreEndScene, dev);
 
             auto ret = endScene9Hook.callOrig(dev);
 
-            INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PostEndScene, dev);
+            INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PostEndScene, dev);
 
             return ret;
         });
@@ -406,14 +406,14 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                     engine->RenderPipeline.pD3D9Device = pDev;
 
-                    INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HYDRAHOOKDirect3DVersion9);
+                    INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HydraHookDirect3DVersion9);
                 });
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PrePresent, dev, a1, a2, a3, a4);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PrePresent, dev, a1, a2, a3, a4);
 
                 const auto ret = present9Hook.call_orig(dev, a1, a2, a3, a4);
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PostPresent, dev, a1, a2, a3, a4);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PostPresent, dev, a1, a2, a3, a4);
 
                 return ret;
             });
@@ -431,11 +431,11 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                     spdlog::get("HYDRAHOOK")->clone("d3d9")->info("++ IDirect3DDevice9Ex::Reset called");
                 });
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PreReset, dev, pp);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PreReset, dev, pp);
 
                 const auto ret = reset9Hook.call_orig(dev, pp);
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PostReset, dev, pp);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PostReset, dev, pp);
 
                 return ret;
             });
@@ -452,11 +452,11 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                     spdlog::get("HYDRAHOOK")->clone("d3d9")->info("++ IDirect3DDevice9Ex::EndScene called");
                 });
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PreEndScene, dev);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PreEndScene, dev);
 
                 const auto ret = endScene9Hook.call_orig(dev);
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PostEndScene, dev);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PostEndScene, dev);
 
                 return ret;
             });
@@ -479,14 +479,14 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                     engine->RenderPipeline.pD3D9ExDevice = pDev;
 
-                    INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HYDRAHOOKDirect3DVersion9);
+                    INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HydraHookDirect3DVersion9);
                 });
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PrePresentEx, dev, a1, a2, a3, a4, a5);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PrePresentEx, dev, a1, a2, a3, a4, a5);
 
                 const auto ret = present9ExHook.call_orig(dev, a1, a2, a3, a4, a5);
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PostPresentEx, dev, a1, a2, a3, a4, a5);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PostPresentEx, dev, a1, a2, a3, a4, a5);
 
                 return ret;
             });
@@ -505,11 +505,11 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                     spdlog::get("HYDRAHOOK")->clone("d3d9")->info("++ IDirect3DDevice9Ex::ResetEx called");
                 });
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PreResetEx, dev, pp, ppp);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PreResetEx, dev, pp, ppp);
 
                 const auto ret = reset9ExHook.call_orig(dev, pp, ppp);
 
-                INVOKE_D3D9_CALLBACK(engine, EvtHYDRAHOOKD3D9PostResetEx, dev, pp, ppp);
+                INVOKE_D3D9_CALLBACK(engine, EvtHydraHookD3D9PostResetEx, dev, pp, ppp);
 
                 return ret;
             });
@@ -534,7 +534,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
 #pragma region D3D10
 
-    static HYDRAHOOK_D3D_VERSION deviceVersion = HYDRAHOOKDirect3DVersionUnknown;
+    static HYDRAHOOK_D3D_VERSION deviceVersion = HydraHookDirect3DVersionUnknown;
 
 #ifndef HYDRAHOOK_NO_D3D10
 
@@ -566,7 +566,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                     if (SUCCEEDED(ret)) {
                         l->debug("ID3D10Device object acquired");
-                        deviceVersion = HYDRAHOOKDirect3DVersion10;
+                        deviceVersion = HydraHookDirect3DVersion10;
                         INVOKE_HYDRAHOOK_GAME_HOOKED(engine, deviceVersion);
                         return;
                     }
@@ -575,7 +575,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                     if (SUCCEEDED(ret)) {
                         l->debug("ID3D11Device object acquired");
-                        deviceVersion = HYDRAHOOKDirect3DVersion11;
+                        deviceVersion = HydraHookDirect3DVersion11;
                         INVOKE_HYDRAHOOK_GAME_HOOKED(engine, deviceVersion);
                         return;
                     }
@@ -588,23 +588,23 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                 HYDRAHOOK_EVT_POST_EXTENSION post;
                 HYDRAHOOK_EVT_POST_EXTENSION_INIT(&post, engine, engine->CustomContext);
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion10) {
-                    INVOKE_D3D10_CALLBACK(engine, EvtHYDRAHOOKD3D10PrePresent, chain, SyncInterval, Flags);
+                if (deviceVersion == HydraHookDirect3DVersion10) {
+                    INVOKE_D3D10_CALLBACK(engine, EvtHydraHookD3D10PrePresent, chain, SyncInterval, Flags);
                 }
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion11) {
-                    INVOKE_D3D11_CALLBACK(engine, EvtHYDRAHOOKD3D11PrePresent, chain,
+                if (deviceVersion == HydraHookDirect3DVersion11) {
+                    INVOKE_D3D11_CALLBACK(engine, EvtHydraHookD3D11PrePresent, chain,
                         SyncInterval, Flags, &pre);
                 }
 
                 const auto ret = swapChainPresent10Hook.call_orig(chain, SyncInterval, Flags);
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion10) {
-                    INVOKE_D3D10_CALLBACK(engine, EvtHYDRAHOOKD3D10PostPresent, chain, SyncInterval, Flags);
+                if (deviceVersion == HydraHookDirect3DVersion10) {
+                    INVOKE_D3D10_CALLBACK(engine, EvtHydraHookD3D10PostPresent, chain, SyncInterval, Flags);
                 }
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion11) {
-                    INVOKE_D3D11_CALLBACK(engine, EvtHYDRAHOOKD3D11PostPresent, chain,
+                if (deviceVersion == HydraHookDirect3DVersion11) {
+                    INVOKE_D3D11_CALLBACK(engine, EvtHydraHookD3D11PostPresent, chain,
                         SyncInterval, Flags, &post);
                 }
 
@@ -629,15 +629,15 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                 HYDRAHOOK_EVT_POST_EXTENSION post;
                 HYDRAHOOK_EVT_POST_EXTENSION_INIT(&post, engine, engine->CustomContext);
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion10) {
-                    INVOKE_D3D10_CALLBACK(engine, EvtHYDRAHOOKD3D10PreResizeTarget, chain,
+                if (deviceVersion == HydraHookDirect3DVersion10) {
+                    INVOKE_D3D10_CALLBACK(engine, EvtHydraHookD3D10PreResizeTarget, chain,
                         pNewTargetParameters);
                 }
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion11) {
+                if (deviceVersion == HydraHookDirect3DVersion11) {
                     INVOKE_D3D11_CALLBACK(
                         engine,
-                        EvtHYDRAHOOKD3D11PreResizeTarget,
+                        EvtHydraHookD3D11PreResizeTarget,
                         chain,
                         pNewTargetParameters,
                         &pre
@@ -646,15 +646,15 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                 const auto ret = swapChainResizeTarget10Hook.call_orig(chain, pNewTargetParameters);
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion10) {
-                    INVOKE_D3D10_CALLBACK(engine, EvtHYDRAHOOKD3D10PostResizeTarget, chain,
+                if (deviceVersion == HydraHookDirect3DVersion10) {
+                    INVOKE_D3D10_CALLBACK(engine, EvtHydraHookD3D10PostResizeTarget, chain,
                         pNewTargetParameters);
                 }
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion11) {
+                if (deviceVersion == HydraHookDirect3DVersion11) {
                     INVOKE_D3D11_CALLBACK(
                         engine,
-                        EvtHYDRAHOOKD3D11PostResizeTarget,
+                        EvtHydraHookD3D11PostResizeTarget,
                         chain,
                         pNewTargetParameters,
                         &post
@@ -686,26 +686,26 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                 HYDRAHOOK_EVT_POST_EXTENSION post;
                 HYDRAHOOK_EVT_POST_EXTENSION_INIT(&post, engine, engine->CustomContext);
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion10) {
-                    INVOKE_D3D10_CALLBACK(engine, EvtHYDRAHOOKD3D10PreResizeBuffers, chain,
+                if (deviceVersion == HydraHookDirect3DVersion10) {
+                    INVOKE_D3D10_CALLBACK(engine, EvtHydraHookD3D10PreResizeBuffers, chain,
                         BufferCount, Width, Height, NewFormat, SwapChainFlags);
                 }
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion11) {
-                    INVOKE_D3D11_CALLBACK(engine, EvtHYDRAHOOKD3D11PreResizeBuffers, chain,
+                if (deviceVersion == HydraHookDirect3DVersion11) {
+                    INVOKE_D3D11_CALLBACK(engine, EvtHydraHookD3D11PreResizeBuffers, chain,
                         BufferCount, Width, Height, NewFormat, SwapChainFlags, &pre);
                 }
 
                 const auto ret = swapChainResizeBuffers10Hook.call_orig(chain,
                     BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion10) {
-                    INVOKE_D3D10_CALLBACK(engine, EvtHYDRAHOOKD3D10PostResizeBuffers, chain,
+                if (deviceVersion == HydraHookDirect3DVersion10) {
+                    INVOKE_D3D10_CALLBACK(engine, EvtHydraHookD3D10PostResizeBuffers, chain,
                         BufferCount, Width, Height, NewFormat, SwapChainFlags);
                 }
 
-                if (deviceVersion == HYDRAHOOKDirect3DVersion11) {
-                    INVOKE_D3D11_CALLBACK(engine, EvtHYDRAHOOKD3D11PostResizeBuffers, chain,
+                if (deviceVersion == HydraHookDirect3DVersion11) {
+                    INVOKE_D3D11_CALLBACK(engine, EvtHydraHookD3D11PostResizeBuffers, chain,
                         BufferCount, Width, Height, NewFormat, SwapChainFlags, &post);
                 }
 
@@ -756,7 +756,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                     engine->RenderPipeline.pSwapChain = pChain;
 
-                    INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HYDRAHOOKDirect3DVersion11);
+                    INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HydraHookDirect3DVersion11);
                 });
 
                 HYDRAHOOK_EVT_PRE_EXTENSION pre;
@@ -766,7 +766,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                 INVOKE_D3D11_CALLBACK(
                     engine,
-                    EvtHYDRAHOOKD3D11PrePresent,
+                    EvtHydraHookD3D11PrePresent,
                     chain,
                     SyncInterval,
                     Flags,
@@ -777,7 +777,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                 INVOKE_D3D11_CALLBACK(
                     engine,
-                    EvtHYDRAHOOKD3D11PostPresent,
+                    EvtHydraHookD3D11PostPresent,
                     chain,
                     SyncInterval,
                     Flags,
@@ -807,7 +807,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                 INVOKE_D3D11_CALLBACK(
                     engine,
-                    EvtHYDRAHOOKD3D11PreResizeTarget,
+                    EvtHydraHookD3D11PreResizeTarget,
                     chain,
                     pNewTargetParameters,
                     &pre
@@ -817,7 +817,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                 INVOKE_D3D11_CALLBACK(
                     engine,
-                    EvtHYDRAHOOKD3D11PostResizeTarget,
+                    EvtHydraHookD3D11PostResizeTarget,
                     chain,
                     pNewTargetParameters,
                     &post
@@ -848,13 +848,13 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                 HYDRAHOOK_EVT_POST_EXTENSION post;
                 HYDRAHOOK_EVT_POST_EXTENSION_INIT(&post, engine, engine->CustomContext);
 
-                INVOKE_D3D11_CALLBACK(engine, EvtHYDRAHOOKD3D11PreResizeBuffers, chain,
+                INVOKE_D3D11_CALLBACK(engine, EvtHydraHookD3D11PreResizeBuffers, chain,
                     BufferCount, Width, Height, NewFormat, SwapChainFlags, &pre);
 
                 const auto ret = swapChainResizeBuffers11Hook.call_orig(chain,
                     BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
-                INVOKE_D3D11_CALLBACK(engine, EvtHYDRAHOOKD3D11PostResizeBuffers, chain,
+                INVOKE_D3D11_CALLBACK(engine, EvtHydraHookD3D11PostResizeBuffers, chain,
                     BufferCount, Width, Height, NewFormat, SwapChainFlags, &post);
 
                 return ret;
@@ -902,14 +902,14 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                 {
                     spdlog::get("HYDRAHOOK")->clone("d3d12")->info("++ IDXGISwapChain::Present called");
 
-                    INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HYDRAHOOKDirect3DVersion12);
+                    INVOKE_HYDRAHOOK_GAME_HOOKED(engine, HydraHookDirect3DVersion12);
                 });
 
-                INVOKE_D3D12_CALLBACK(engine, EvtHYDRAHOOKD3D12PrePresent, chain, SyncInterval, Flags);
+                INVOKE_D3D12_CALLBACK(engine, EvtHydraHookD3D12PrePresent, chain, SyncInterval, Flags);
 
                 const auto ret = swapChainPresent12Hook.call_orig(chain, SyncInterval, Flags);
 
-                INVOKE_D3D12_CALLBACK(engine, EvtHYDRAHOOKD3D12PostPresent, chain, SyncInterval, Flags);
+                INVOKE_D3D12_CALLBACK(engine, EvtHydraHookD3D12PostPresent, chain, SyncInterval, Flags);
 
                 return ret;
             });
@@ -927,11 +927,11 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                     spdlog::get("HYDRAHOOK")->clone("d3d12")->info("++ IDXGISwapChain::ResizeTarget called");
                 });
 
-                INVOKE_D3D12_CALLBACK(engine, EvtHYDRAHOOKD3D12PreResizeTarget, chain, pNewTargetParameters);
+                INVOKE_D3D12_CALLBACK(engine, EvtHydraHookD3D12PreResizeTarget, chain, pNewTargetParameters);
 
                 const auto ret = swapChainResizeTarget12Hook.call_orig(chain, pNewTargetParameters);
 
-                INVOKE_D3D12_CALLBACK(engine, EvtHYDRAHOOKD3D12PostResizeTarget, chain, pNewTargetParameters);
+                INVOKE_D3D12_CALLBACK(engine, EvtHydraHookD3D12PostResizeTarget, chain, pNewTargetParameters);
 
                 return ret;
             });
@@ -953,13 +953,13 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                     spdlog::get("HYDRAHOOK")->clone("d3d12")->info("++ IDXGISwapChain::ResizeBuffers called");
                 });
 
-                INVOKE_D3D12_CALLBACK(engine, EvtHYDRAHOOKD3D12PreResizeBuffers, chain,
+                INVOKE_D3D12_CALLBACK(engine, EvtHydraHookD3D12PreResizeBuffers, chain,
                     BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
                 const auto ret = swapChainResizeBuffers12Hook.call_orig(chain,
                     BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
-                INVOKE_D3D12_CALLBACK(engine, EvtHYDRAHOOKD3D12PostResizeBuffers, chain,
+                INVOKE_D3D12_CALLBACK(engine, EvtHydraHookD3D12PostResizeBuffers, chain,
                     BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
                 return ret;
@@ -1014,12 +1014,12 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                 HYDRAHOOK_EVT_POST_EXTENSION post;
                 HYDRAHOOK_EVT_POST_EXTENSION_INIT(&post, engine, engine->CustomContext);
 
-                INVOKE_ARC_CALLBACK(engine, EvtHYDRAHOOKARCPreGetBuffer, client, 
+                INVOKE_ARC_CALLBACK(engine, EvtHydraHookARCPreGetBuffer, client, 
                     NumFramesRequested, ppData, &pre);
 
                 const auto ret = arcGetBufferHook.call_orig(client, NumFramesRequested, ppData);
 
-                INVOKE_ARC_CALLBACK(engine, EvtHYDRAHOOKARCPostGetBuffer, client, 
+                INVOKE_ARC_CALLBACK(engine, EvtHydraHookARCPostGetBuffer, client, 
                     NumFramesRequested, ppData, &post);
 
                 return ret;
@@ -1044,12 +1044,12 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                 HYDRAHOOK_EVT_POST_EXTENSION post;
                 HYDRAHOOK_EVT_POST_EXTENSION_INIT(&post, engine, engine->CustomContext);
 
-                INVOKE_ARC_CALLBACK(engine, EvtHYDRAHOOKARCPreReleaseBuffer, client, 
+                INVOKE_ARC_CALLBACK(engine, EvtHydraHookARCPreReleaseBuffer, client, 
                     NumFramesWritten, dwFlags, &pre);
 
                 const auto ret = arcReleaseBufferHook.call_orig(client, NumFramesWritten, dwFlags);
 
-                INVOKE_ARC_CALLBACK(engine, EvtHYDRAHOOKARCPostReleaseBuffer, client, 
+                INVOKE_ARC_CALLBACK(engine, EvtHydraHookARCPostReleaseBuffer, client, 
                     NumFramesWritten, dwFlags, &post);
 
                 return ret;
@@ -1130,9 +1130,9 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
     //
     // Notify host that we are about to release all render pipeline hooks
     // 
-    if (engine->EngineConfig.EvtHYDRAHOOKGamePreUnhook)
+    if (engine->EngineConfig.EvtHydraHookGamePreUnhook)
     {
-        engine->EngineConfig.EvtHYDRAHOOKGamePreUnhook(engine);
+        engine->EngineConfig.EvtHydraHookGamePreUnhook(engine);
     }
 
     try
@@ -1178,9 +1178,9 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
     //
     // Notify host that we released all render pipeline hooks
     // 
-    if (engine->EngineConfig.EvtHYDRAHOOKGamePostUnhook)
+    if (engine->EngineConfig.EvtHydraHookGamePostUnhook)
     {
-        engine->EngineConfig.EvtHYDRAHOOKGamePostUnhook(engine);
+        engine->EngineConfig.EvtHydraHookGamePostUnhook(engine);
     }
 
     logger->info("Exiting worker thread");

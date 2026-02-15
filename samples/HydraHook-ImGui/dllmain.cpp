@@ -160,13 +160,13 @@ void EvtHydraHookGameHooked(
 
 	switch (GameVersion)
 	{
-	case HYDRAHOOKDirect3DVersion9:
+	case HydraHookDirect3DVersion9:
 		HydraHookEngineSetD3D9EventCallbacks(EngineHandle, &d3d9);
 		break;
-	case HYDRAHOOKDirect3DVersion10:
+	case HydraHookDirect3DVersion10:
 		HydraHookEngineSetD3D10EventCallbacks(EngineHandle, &d3d10);
 		break;
-	case HYDRAHOOKDirect3DVersion11:
+	case HydraHookDirect3DVersion11:
 		HydraHookEngineSetD3D11EventCallbacks(EngineHandle, &d3d11);
 		break;
 	}

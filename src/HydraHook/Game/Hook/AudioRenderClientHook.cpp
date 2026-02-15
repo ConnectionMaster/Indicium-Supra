@@ -26,7 +26,7 @@ SOFTWARE.
 #include "AudioRenderClientHook.h"
 #include "Exceptions.hpp"
 
-using namespace HYDRAHOOK::Core::Exceptions;
+using namespace HydraHook::Core::Exceptions;
 
 CoreAudioHooking::AudioRenderClientHook::AudioRenderClientHook()
 {

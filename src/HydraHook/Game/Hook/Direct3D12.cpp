@@ -29,7 +29,7 @@ SOFTWARE.
 #include "DXGI.h"
 #include "Exceptions.hpp"
 
-using namespace HYDRAHOOK::Core::Exceptions;
+using namespace HydraHook::Core::Exceptions;
 
 Direct3D12Hooking::Direct3D12::Direct3D12() :
 	pd3dDevice(nullptr), pQueue(nullptr), pSwapChain(nullptr)
