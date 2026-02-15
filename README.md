@@ -2,7 +2,7 @@
 
 API-Hooking and rendering framework for DirectX-based games.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/rt4ybpwrhn22kegm?svg=true)](https://ci.appveyor.com/project/nefarius/indicium-supra) [![Discord](https://img.shields.io/discord/346756263763378176.svg)](https://discord.nefarius.at) [![Website](https://img.shields.io/website-up-down-green-red/https/docs.nefarius.at.svg?label=docs.nefarius.at)](https://docs.nefarius.at/) [![GitHub followers](https://img.shields.io/github/followers/nefarius.svg?style=social&label=Follow)](https://github.com/nefarius) [![Mastodon Follow](https://img.shields.io/mastodon/follow/109321120351128938?domain=https%3A%2F%2Ffosstodon.org%2F&style=social)](https://fosstodon.org/@Nefarius)
+[![Build status](https://ci.appveyor.com/api/projects/status/rt4ybpwrhn22kegm?svg=true)](https://ci.appveyor.com/project/nefarius/hydrahook) [![Discord](https://img.shields.io/discord/346756263763378176.svg)](https://discord.nefarius.at) [![Website](https://img.shields.io/website-up-down-green-red/https/docs.nefarius.at.svg?label=docs.nefarius.at)](https://docs.nefarius.at/) [![GitHub followers](https://img.shields.io/github/followers/nefarius.svg?style=social&label=Follow)](https://github.com/nefarius) [![Mastodon Follow](https://img.shields.io/mastodon/follow/109321120351128938?domain=https%3A%2F%2Ffosstodon.org%2F&style=social)](https://fosstodon.org/@Nefarius)
 
 ## About
 
@@ -30,7 +30,7 @@ API-Hooking and rendering framework for DirectX-based games.
 1. Clone the repository and initialize submodules: `git submodule update --init --recursive`
 2. Open `HydraHook.sln` in Visual Studio and build
 
-Dependencies (spdlog, detours, imgui) are declared in `vcpkg.json` and installed via [vcpkg](https://github.com/microsoft/vcpkg) (included as a submodule). Run `prepare-deps.bat` from a **Developer Command Prompt for VS 2022** (or x64 Native Tools Command Prompt) before the first build in Visual Studio; the build will use existing `vcpkg_installed` if present.
+Dependencies (spdlog, detours, imgui, directxtk) are declared in `vcpkg.json` and installed via [vcpkg](https://github.com/microsoft/vcpkg) (included as a submodule). Run `prepare-deps.bat` from a **Developer Command Prompt for VS 2022** (or x64 Native Tools Command Prompt) before the first build in Visual Studio; the build will use existing `vcpkg_installed` if present.
 
 ### Pre-built binaries
 
@@ -52,7 +52,7 @@ The core library logs its progress and potential errors to the file `%TEMP%\Hydr
 
 ## Demos
 
-The following screenshots show [imgui](https://github.com/ocornut/imgui) getting rendered in foreign processes using different versions of DirectX.
+The following screenshots show [imgui](https://github.com/ocornut/imgui) being rendered in foreign processes using different versions of DirectX.
 
 ### DirectX 9
 
