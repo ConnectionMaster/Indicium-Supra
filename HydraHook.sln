@@ -4,7 +4,7 @@ VisualStudioVersion = 17.14.36915.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HydraHook", "src\HydraHook\HydraHook.vcxproj", "{DB383579-DA7F-48C0-AB1F-7C4C93544E2C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HydraHook-FW1FontWrapper", "samples\HydraHook-FW1FontWrapper\HydraHook-FW1FontWrapper.vcxproj", "{32E54E8E-9BD1-4E71-AEF6-B1E3090711AA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HydraHook-DirectXTK", "samples\HydraHook-DirectXTK\HydraHook-DirectXTK.vcxproj", "{32E54E8E-9BD1-4E71-AEF6-B1E3090711AA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HydraHook-ImGui", "samples\HydraHook-ImGui\HydraHook-ImGui.vcxproj", "{FC86B49A-3A73-4D82-81BA-D72B54C9132D}"
 EndProject

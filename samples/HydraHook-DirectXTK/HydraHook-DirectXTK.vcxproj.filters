@@ -28,7 +28,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="HydraHook-FW1FontWrapper.rc">
+    <ResourceCompile Include="HydraHook-DirectXTK.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>

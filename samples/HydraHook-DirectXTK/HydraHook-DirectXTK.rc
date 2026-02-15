@@ -43,10 +43,10 @@ BEGIN
             VALUE "CompanyName", "Benjamin Hoeglinger-Stelzer"
             VALUE "FileDescription", "API-Hooking and rendering framework for DirectX-based games"
             VALUE "FileVersion", "1.0.0.1"
-            VALUE "InternalName", "HydraHook-FW1FontWrapper.dll"
+            VALUE "InternalName", "HydraHook-DirectXTK.dll"
             VALUE "LegalCopyright", "Copyright (C) Benjamin Hoeglinger-Stelzer 2016-2018"
-            VALUE "OriginalFilename", "HydraHook-FW1FontWrapper.dll"
-            VALUE "ProductName", "HydraHook-FW1FontWrapper"
+            VALUE "OriginalFilename", "HydraHook-DirectXTK.dll"
+            VALUE "ProductName", "HydraHook-DirectXTK"
             VALUE "ProductVersion", "1.0.0.1"
         END
     END

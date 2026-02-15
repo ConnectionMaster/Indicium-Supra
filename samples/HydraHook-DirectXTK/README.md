@@ -1,4 +1,4 @@
-# HydraHook-FW1FontWrapper
+# HydraHook-DirectXTK
 
 DirectX 11 sample demonstrating text rendering in foreign processes.
 

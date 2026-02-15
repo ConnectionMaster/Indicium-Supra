@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by HYDRAHOOK-FW1FontWrapper.rc
+// Used by HydraHook-DirectXTK.rc
 
 // Next default values for new objects
 // 
