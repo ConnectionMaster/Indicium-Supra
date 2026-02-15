@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018 Benjamin Höglinger
+Copyright (c) 2018 Benjamin HÃ¶glinger
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -95,7 +95,7 @@ typedef struct _INDICIUM_D3D10_EVENT_CALLBACKS
  *
  * \brief   The Direct3D 10 event callback collection to initialize.
  *
- * \author  Benjamin Höglinger-Stelzer
+ * \author  Benjamin HÃ¶glinger-Stelzer
  * \date    06.05.2019
  *
  * \param   Callbacks   The callback collection.

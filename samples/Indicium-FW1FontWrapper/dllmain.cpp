@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018 Benjamin Höglinger
+Copyright (c) 2018 Benjamin HÃ¶glinger
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -57,7 +57,7 @@ EVT_INDICIUM_GAME_UNHOOKED EvtIndiciumGamePostUnhooked;
  * \brief	Your typical DLL entry point function. We're not doing much here since a special
  * 			initialization routine gets called upon getting loaded by Indicium-Supra.
  *
- * \author	Benjamin "Nefarius" Höglinger
+ * \author	Benjamin "Nefarius" HÃ¶glinger
  * \date	05.05.2018
  *
  * \param	hInstance 	The instance.
