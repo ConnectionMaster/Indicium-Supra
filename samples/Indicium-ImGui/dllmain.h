@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018 Benjamin Höglinger
+Copyright (c) 2018 Benjamin Hï¿½glinger
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ SOFTWARE.
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include "imgui.h"
+#include <imgui.h>
 
 #include <Indicium/Engine/IndiciumCore.h>
 #include <Indicium/Engine/IndiciumDirect3D9.h>
@@ -84,7 +84,7 @@ EVT_INDICIUM_D3D11_POST_RESIZE_BUFFERS EvtIndiciumD3D11PostResizeBuffers;
  *
  * \brief	Overly complicated key toggle helper
  *
- * \author	Benjamin "Nefarius" Höglinger-Stelzer
+ * \author	Benjamin "Nefarius" Hï¿½glinger-Stelzer
  * \date	7/09/2018
  *
  * \param 		  	key   	The key.

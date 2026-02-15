@@ -1,0 +1,22 @@
+<Project>
+  <Import Project="$(MSBuildThisFileDirectory)vcpkg\scripts\buildsystems\msbuild\vcpkg.targets" />
+
+  <!-- Manifest mode: vcpkg installs to vcpkg_installed\<triplet>\, vcpkg.targets incorrectly appends triplet again -->
+  <PropertyGroup Condition="'$(VcpkgEnableManifest)' == 'true'">
+    <_ZVcpkgCurrentInstalledDir>$(_ZVcpkgInstalledDir)</_ZVcpkgCurrentInstalledDir>
+  </PropertyGroup>
+
+  <!-- Dependencies must be installed via prepare-deps.bat (run from Developer Command Prompt) before building in VS -->
+  <Target Name="VcpkgInstallManifestDependencies" BeforeTargets="ClCompile"
+          Condition="'$(VcpkgEnabled)' == 'true' and '$(VcpkgEnableManifest)' == 'true' and '$(VcpkgManifestInstall)' == 'true'"
+          Inputs="@(_ZVcpkgInstallManifestDependenciesInputs)"
+          Outputs="$(_ZVcpkgMSBuildStampFile)">
+    <PropertyGroup>
+      <_ZVcpkgDepsReady Condition="Exists('$(MSBuildThisFileDirectory)vcpkg_installed\$(VcpkgTriplet)\include\spdlog\spdlog.h')">true</_ZVcpkgDepsReady>
+    </PropertyGroup>
+    <Error Condition="'$(_ZVcpkgDepsReady)' != 'true'"
+           Text="vcpkg dependencies not installed. Run prepare-deps.bat from a Developer Command Prompt for VS, then build again." />
+    <Message Text="Using existing vcpkg installation" Importance="High" Condition="'$(_ZVcpkgDepsReady)' == 'true'" />
+    <Touch Files="$(_ZVcpkgMSBuildStampFile)" AlwaysCreate="true" />
+  </Target>
+</Project>

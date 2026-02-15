@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018 Benjamin Höglinger
+Copyright (c) 2018 Benjamin Hï¿½glinger
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,10 +38,10 @@ SOFTWARE.
 // ImGui includes
 // 
 #include <imgui.h>
-#include "imgui_impl_dx9.h"
-#include "imgui_impl_dx10.h"
-#include "imgui_impl_dx11.h"
-#include "imgui_impl_win32.h"
+#include <imgui_impl_dx9.h>
+#include <imgui_impl_dx10.h>
+#include <imgui_impl_dx11.h>
+#include <imgui_impl_win32.h>
 
 t_WindowProc OriginalDefWindowProc = nullptr;
 t_WindowProc OriginalWindowProc = nullptr;
@@ -53,7 +53,7 @@ PINDICIUM_ENGINE engine = nullptr;
  * \brief   DLL main entry point. Only Indicium engine initialization or shutdown should happen
  *          here to avoid deadlocks.
  *
- * \author  Benjamin "Nefarius" Höglinger
+ * \author  Benjamin "Nefarius" Hï¿½glinger
  * \date    16.06.2018
  *
  * \param   hInstance   The instance handle.
@@ -114,7 +114,7 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
  * 			rendering callbacks are about to get fired. The detected version of the used
  * 			rendering objects is reported as well.
  *
- * \author	Benjamin "Nefarius" Höglinger
+ * \author	Benjamin "Nefarius" Hï¿½glinger
  * \date	16.06.2018
  *
  * \param	EngineHandle	Handle of the engine.
@@ -178,7 +178,7 @@ void EvtIndiciumGameHooked(
  * \brief   Gets called when all core engine hooks have been released. At this stage it is save
  *          to remove our own additional hooks and shut down the hooking sub-system as well.
  *
- * \author  Benjamin "Nefarius" Höglinger
+ * \author  Benjamin "Nefarius" Hï¿½glinger
  * \date    16.06.2018
  */
 void EvtIndiciumGameUnhooked()

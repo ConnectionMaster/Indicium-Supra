@@ -24,16 +24,13 @@ API-Hooking and rendering framework for DirectX-based games.
 
 - Visual Studio **2019** ([Community Edition](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=16) is just fine)
 - [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
-- [Follow the Vcpkg Quick Start](https://github.com/Microsoft/vcpkg#quick-start) and install the following packages:
-  - `.\vcpkg install spdlog:x86-windows-static spdlog:x64-windows-static detours:x86-windows-static detours:x64-windows-static`
-  - For the ImGui sample to build you'll also need:
-    - `.\vcpkg install imgui:x86-windows-static imgui:x64-windows-static`
 
-Building should be pretty straight-forward since the dependencies get installed via [Vcpkg](https://github.com/Microsoft/vcpkg). You have multiple choices for getting things done.
+### Build steps
 
-### Visual Studio
+1. Clone the repository and initialize submodules: `git submodule update --init --recursive`
+2. Open `Indicium-Supra.sln` in Visual Studio and build
 
-Just open the solution file `Indicium-Supra.sln` and start the build from there.
+Dependencies (spdlog, detours, imgui) are declared in `vcpkg.json` and installed via [vcpkg](https://github.com/Microsoft/vcpkg) (included as a submodule). Run `prepare-deps.bat` from a **Developer Command Prompt for VS** before the first build in Visual Studio; the build will use existing `vcpkg_installed` if present.
 
 ### The lazy way
 
