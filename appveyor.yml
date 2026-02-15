@@ -10,14 +10,14 @@ install:
 before_build:
 - cmd: .\prepare-deps.bat
 - ps: Invoke-WebRequest "https://downloads.nefarius.at/other/nefarius/vpatch/vpatch.exe" -OutFile vpatch.exe
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\src\Indicium-Supra\Indicium-Supra.rc" --resource.file-version --resource.product-version
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\Indicium-ImGui\Indicium-ImGui.rc" --resource.file-version --resource.product-version
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\Indicium-FW1FontWrapper\Indicium-FW1FontWrapper.rc" --resource.file-version --resource.product-version
+- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\src\HydraHook\HydraHook.rc" --resource.file-version --resource.product-version
+- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-ImGui\HydraHook-ImGui.rc" --resource.file-version --resource.product-version
+- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-FW1FontWrapper\HydraHook-FW1FontWrapper.rc" --resource.file-version --resource.product-version
 build:
-  project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
+  project: $(APPVEYOR_BUILD_FOLDER)\HydraHook.sln
 artifacts:
 - path: 'bin\**\*.dll'
-  name: Indicium-Supra
+  name: HydraHook
 deploy:
 - provider: Environment
   name: BUILDBOT

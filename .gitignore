@@ -354,6 +354,6 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
-/src/Indicium-Supra/Release_LIB
+/src/HydraHook/Release_LIB
 *.7z
-/src/Indicium-Supra/Debug_LIB
+/src/HydraHook/Debug_LIB

@@ -1,4 +1,4 @@
-# Indicium-Supra
+# HydraHook
 
 API-Hooking and rendering framework for DirectX-based games.
 
@@ -6,7 +6,7 @@ API-Hooking and rendering framework for DirectX-based games.
 
 ## About
 
-`Indicium-Supra` consists of a self-contained library (DLL) which exposes a minimalistic API for rendering custom content in foreign processes eliminating the need for in-depth knowledge about Direct3D and API-hooking. The most common use-case might be drawing custom overlays on top of your games. The framework takes care about pesky tasks like detecting the DirectX version the game was built for and supports runtime-hooking (no special launcher application required).
+`HydraHook` consists of a self-contained library (DLL) which exposes a minimalistic API for rendering custom content in foreign processes eliminating the need for in-depth knowledge about Direct3D and API-hooking. The most common use-case might be drawing custom overlays on top of your games. The framework takes care about pesky tasks like detecting the DirectX version the game was built for and supports runtime-hooking (no special launcher application required).
 
 ## Supported DirectX versions
 
@@ -28,27 +28,27 @@ API-Hooking and rendering framework for DirectX-based games.
 ### Build steps
 
 1. Clone the repository and initialize submodules: `git submodule update --init --recursive`
-2. Open `Indicium-Supra.sln` in Visual Studio and build
+2. Open `HydraHook.sln` in Visual Studio and build
 
 Dependencies (spdlog, detours, imgui) are declared in `vcpkg.json` and installed via [vcpkg](https://github.com/microsoft/vcpkg) (included as a submodule). Run `prepare-deps.bat` from a **Developer Command Prompt for VS 2022** (or x64 Native Tools Command Prompt) before the first build in Visual Studio; the build will use existing `vcpkg_installed` if present.
 
 ### Pre-built binaries
 
-Pre-built binaries are available from the [buildbot](https://buildbot.nefarius.at/builds/Indicium-Supra/master/) for the `master` branch. Note: these builds may be outdated; for the latest code (including the `rework` branch), build from source.
+Pre-built binaries are available from the [buildbot](https://buildbot.nefarius.at/builds/HydraHook/master/) for the `master` branch. Note: these builds may be outdated; for the latest code (including the `rework` branch), build from source.
 
 ## How to use
 
-Inject the resulting host library (e.g. `Indicium-ImGui.dll`) into the target process first using a DLL injection utility of your choice (you can ofc. [use mine as well](https://github.com/nefarius/Injector)). The following example loads the [imgui sample](samples/Indicium-ImGui):
+Inject the resulting host library (e.g. `HydraHook-ImGui.dll`) into the target process first using a DLL injection utility of your choice (you can ofc. [use mine as well](https://github.com/nefarius/Injector)). The following example loads the [imgui sample](samples/HydraHook-ImGui):
 
 ```PowerShell
-.\Injector -i -n hl2.exe Indicium-ImGui.dll
+.\Injector -i -n hl2.exe HydraHook-ImGui.dll
 ```
 
 Just make sure your host library doesn't require any external dependencies not present in the process context or you'll get a `LoadLibrary failed` error.
 
 ## Diagnostics
 
-The core library logs its progress and potential errors to the file `%TEMP%\Indicium-Supra.log`.
+The core library logs its progress and potential errors to the file `%TEMP%\HydraHook.log`.
 
 ## Demos
 
