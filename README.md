@@ -1,4 +1,4 @@
-# HydraHook
+# <img src="assets/HydraHook_128x128.png" align="left" /> HydraHook
 
 API-Hooking and rendering framework for DirectX-based games.
 
