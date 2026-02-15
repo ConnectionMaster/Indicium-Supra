@@ -1,5 +1,5 @@
 version: 4.0.{build}.0
-image: Visual Studio 2019
+image: Visual Studio 2022
 platform:
 - Win32
 - x64
@@ -9,10 +9,10 @@ install:
 - cmd: git submodule update --init --recursive
 before_build:
 - cmd: .\prepare-deps.bat
-- ps: Invoke-WebRequest "https://downloads.nefarius.at/other/nefarius/vpatch/vpatch.exe" -OutFile vpatch.exe
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\src\HydraHook\HydraHook.rc" --resource.file-version --resource.product-version
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-ImGui\HydraHook-ImGui.rc" --resource.file-version --resource.product-version
-- cmd: vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-DirectXTK\HydraHook-DirectXTK.rc" --resource.file-version --resource.product-version
+- cmd: dotnet tool install --global Nefarius.Tools.Vpatch
+- cmd: vpatch --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\src\HydraHook\HydraHook.rc" --resource.file-version --resource.product-version
+- cmd: vpatch --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-ImGui\HydraHook-ImGui.rc" --resource.file-version --resource.product-version
+- cmd: vpatch --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-DirectXTK\HydraHook-DirectXTK.rc" --resource.file-version --resource.product-version
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\HydraHook.sln
 artifacts:
