@@ -44,7 +44,7 @@ BEGIN
             VALUE "FileDescription", "API-Hooking and rendering framework for DirectX-based games"
             VALUE "FileVersion", "1.0.0.1"
             VALUE "InternalName", "HydraHook-DirectXTK.dll"
-            VALUE "LegalCopyright", "Copyright (C) Benjamin Hoeglinger-Stelzer 2016-2018"
+            VALUE "LegalCopyright", "Copyright (C) Benjamin Höglinger-Stelzer 2016-2026"
             VALUE "OriginalFilename", "HydraHook-DirectXTK.dll"
             VALUE "ProductName", "HydraHook-DirectXTK"
             VALUE "ProductVersion", "1.0.0.1"
