@@ -84,6 +84,17 @@ Road Redemption, 64-Bit
 
 ## Sources
 
+### Dependencies
+
+This project uses the following libraries (via [vcpkg](https://github.com/microsoft/vcpkg)):
+
+- [spdlog](https://github.com/gabime/spdlog) – Fast C++ logging library
+- [Microsoft Detours](https://github.com/microsoft/Detours) – API hooking library
+- [Dear ImGui](https://github.com/ocornut/imgui) – Immediate mode GUI
+- [DirectXTK](https://github.com/microsoft/DirectXTK) – DirectX Toolkit
+
+### References & inspiration
+
 - [DX9-Overlay-API](https://github.com/agrippa1994/DX9-Overlay-API)
 - [Creating a render target in DirectX 11](https://www.hlsl.co.uk/blog/2014/11/19/creating-a-render-target-in-directx11)
 - [ion RE Library](https://github.com/scen/ionlib)
