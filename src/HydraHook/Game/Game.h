@@ -24,4 +24,6 @@ SOFTWARE.
 
 #pragma once
 
+#include <Windows.h>
+
 DWORD WINAPI HydraHookMainThread(LPVOID Params);

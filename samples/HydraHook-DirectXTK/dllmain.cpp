@@ -54,7 +54,12 @@ EVT_HYDRAHOOK_GAME_UNHOOKED EvtHydraHookGamePostUnhooked;
 static std::wstring GetFontPath()
 {
 	wchar_t path[MAX_PATH];
-	if (GetModuleFileNameW(g_hModule, path, MAX_PATH) == 0)
+	DWORD len = GetModuleFileNameW(g_hModule, path, MAX_PATH);
+	if (len == 0)
+		return L"";
+	// Detect truncation: GetModuleFileNameW returns len written; if buffer too small,
+	// it returns MAX_PATH and sets ERROR_INSUFFICIENT_BUFFER
+	if (len >= MAX_PATH && GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 		return L"";
 
 	std::wstring fontPath(path);
@@ -147,11 +152,15 @@ void EvtHydraHookGameHooked(
 	//
 	// Allocate context memory
 	// 
-	assert(HydraHookEngineAllocCustomContext(
+	if (HydraHookEngineAllocCustomContext(
 		EngineHandle,
 		(PVOID*)&pCtx,
 		sizeof(DX11_TEXT_CTX)
-	) == HYDRAHOOK_ERROR_NONE);
+	) != HYDRAHOOK_ERROR_NONE || !pCtx)
+	{
+		HydraHookEngineLogError("Failed to allocate custom context for DirectXTK sample");
+		return;
+	}
 
 	// Placement new to construct the struct (it has non-trivial members)
 	new (pCtx) DX11_TEXT_CTX();
@@ -199,7 +208,8 @@ void EvtHydraHookD3D11PrePresent(
 	 * does when switching cores) so compare to ones grabbed earlier and
 	 * re-request both if necessary.
 	 */
-	if (pCtx->dev != pDeviceTmp)
+	bool devChanged = (pCtx->dev != pDeviceTmp);
+	if (devChanged)
 	{
 		pCtx->spriteBatch.reset();
 		pCtx->spriteFont.reset();
@@ -214,6 +224,7 @@ void EvtHydraHookD3D11PrePresent(
 		const std::wstring fontPath = GetFontPath();
 		if (fontPath.empty() || GetFileAttributesW(fontPath.c_str()) == INVALID_FILE_ATTRIBUTES)
 		{
+			pDeviceTmp->Release();
 			HydraHookEngineLogError("Arial.spritefont not found next to DLL. Run MakeSpriteFont on arial.ttf and place output alongside the DLL.");
 			return;
 		}
@@ -226,10 +237,13 @@ void EvtHydraHookD3D11PrePresent(
 		}
 		catch (const std::exception& e)
 		{
+			pDeviceTmp->Release();
 			HydraHookEngineLogError("Failed to create DirectXTK resources: %s", e.what());
 			return;
 		}
 	}
+
+	pDeviceTmp->Release();
 
 	ID3D11Texture2D* pBackBuffer = nullptr;
 	if (FAILED(D3D11_BACKBUFFER_FROM_SWAPCHAIN(pSwapChain, &pBackBuffer)))

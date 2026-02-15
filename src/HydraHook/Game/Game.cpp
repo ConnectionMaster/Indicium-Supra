@@ -89,7 +89,7 @@ void HookDInput8(size_t* vtable8);
  *
  * \brief   HydraHook Engine main thread. All the hooking happens here.
  *
- * \author  Benjamin "Nefarius" H�glinger
+ * \author  Benjamin "Nefarius" Höglinger-Stelzer
  * \date    13.06.2018
  *
  * \param   Params  Options for controlling the operation.
