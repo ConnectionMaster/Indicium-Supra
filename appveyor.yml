@@ -8,7 +8,7 @@ configuration:
 install:
 - cmd: git submodule update --init --recursive
 before_build:
-- cmd: .\prepare-deps.bat
+- cmd: .\prepare-deps.bat %PLATFORM%
 - cmd: dotnet tool install --global Nefarius.Tools.Vpatch
 - cmd: vpatch --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\src\HydraHook\HydraHook.rc" --resource.file-version --resource.product-version
 - cmd: vpatch --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-ImGui\HydraHook-ImGui.rc" --resource.file-version --resource.product-version
