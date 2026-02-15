@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018-2026 Benjamin Höglinger-Stelzer
+Copyright (c) 2018-2026 Benjamin HÃ¶glinger-Stelzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 // Enum each PNP device using WMI and check each device ID to see if it contains 
-// "IG_" (ex. "VID_045E&PID_028E&IG_00").  If it does, then it’s an XInput device
+// "IG_" (ex. "VID_045E&PID_028E&IG_00").  If it does, then itâ€™s an XInput device
 // Unfortunately this information can not be found by just using DirectInput.
 // Checking against a VID/PID of 0x028E/0x045E won't find 3rd party or future 
 // XInput devices.
@@ -108,7 +108,7 @@ HRESULT DirectInput8Hooking::DirectInput8::SetupForIsXInputDevice()
             hr = pDevices[iDevice]->Get(bstrDeviceID, 0L, &var, nullptr, nullptr);
             if (SUCCEEDED(hr) && var.vt == VT_BSTR && var.bstrVal != nullptr)
             {
-                // Check if the device ID contains "IG_".  If it does, then it’s an XInput device
+                // Check if the device ID contains "IG_".  If it does, then itâ€™s an XInput device
                 // Unfortunately this information can not be found by just using DirectInput 
                 if (wcsstr(var.bstrVal, L"IG_"))
                 {

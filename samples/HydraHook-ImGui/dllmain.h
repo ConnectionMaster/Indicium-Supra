@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018-2026 Benjamin Höglinger-Stelzer
+Copyright (c) 2018-2026 Benjamin HÃ¶glinger-Stelzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -84,7 +84,7 @@ EVT_HYDRAHOOK_D3D11_POST_RESIZE_BUFFERS EvtHydraHookD3D11PostResizeBuffers;
  *
  * \brief	Overly complicated key toggle helper
  *
- * \author	Benjamin "Nefarius" H�glinger-Stelzer
+ * \author	Benjamin "Nefarius" Hï¿½glinger-Stelzer
  * \date	7/09/2018
  *
  * \param 		  	key   	The key.

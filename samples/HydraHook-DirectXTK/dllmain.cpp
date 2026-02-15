@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018-2026 Benjamin Höglinger-Stelzer
+Copyright (c) 2018-2026 Benjamin HÃ¶glinger-Stelzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -76,7 +76,7 @@ static std::wstring GetFontPath()
  * \brief	Your typical DLL entry point function. We're not doing much here since a special
  * 			initialization routine gets called upon getting loaded by HydraHook.
  *
- * \author	Benjamin "Nefarius" Höglinger
+ * \author	Benjamin "Nefarius" HÃ¶glinger
  * \date	05.05.2018
  *
  * \param	hInstance 	The instance.

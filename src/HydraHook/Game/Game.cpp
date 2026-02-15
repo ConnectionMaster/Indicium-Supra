@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018-2026 Benjamin Höglinger-Stelzer
+Copyright (c) 2018-2026 Benjamin HÃ¶glinger-Stelzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -89,7 +89,7 @@ void HookDInput8(size_t* vtable8);
  *
  * \brief   HydraHook Engine main thread. All the hooking happens here.
  *
- * \author  Benjamin "Nefarius" Höglinger-Stelzer
+ * \author  Benjamin "Nefarius" HÃ¶glinger-Stelzer
  * \date    13.06.2018
  *
  * \param   Params  Options for controlling the operation.
