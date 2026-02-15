@@ -105,31 +105,31 @@ typedef struct _HYDRAHOOK_ENGINE
 } HYDRAHOOK_ENGINE;
 
 #define INVOKE_HYDRAHOOK_GAME_HOOKED(_engine_, _version_)    \
-                                    (_engine_->EngineConfig.EvtHydraHookGameHooked ? \
-                                    _engine_->EngineConfig.EvtHydraHookGameHooked(_engine_, _version_) : \
+                                    ((_engine_)->EngineConfig.EvtHydraHookGameHooked ? \
+                                    (_engine_)->EngineConfig.EvtHydraHookGameHooked(_engine_, _version_) : \
                                     (void)0)
 
 #define INVOKE_D3D9_CALLBACK(_engine_, _callback_, ...)     \
-                            (_engine_->EventsD3D9._callback_ ? \
-                            _engine_->EventsD3D9._callback_(##__VA_ARGS__) : \
+                            ((_engine_)->EventsD3D9._callback_ ? \
+                            (_engine_)->EventsD3D9._callback_(##__VA_ARGS__) : \
                             (void)0)
 
 #define INVOKE_D3D10_CALLBACK(_engine_, _callback_, ...)     \
-                             (_engine_->EventsD3D10._callback_ ? \
-                             _engine_->EventsD3D10._callback_(##__VA_ARGS__) : \
+                             ((_engine_)->EventsD3D10._callback_ ? \
+                             (_engine_)->EventsD3D10._callback_(##__VA_ARGS__) : \
                              (void)0)
 
 #define INVOKE_D3D11_CALLBACK(_engine_, _callback_, ...)     \
-                             (_engine_->EventsD3D11._callback_ ? \
-                             _engine_->EventsD3D11._callback_(##__VA_ARGS__) : \
+                             ((_engine_)->EventsD3D11._callback_ ? \
+                             (_engine_)->EventsD3D11._callback_(##__VA_ARGS__) : \
                              (void)0)
 
 #define INVOKE_D3D12_CALLBACK(_engine_, _callback_, ...)     \
-                             (_engine_->EventsD3D12._callback_ ? \
-                             _engine_->EventsD3D12._callback_(##__VA_ARGS__) : \
+                             ((_engine_)->EventsD3D12._callback_ ? \
+                             (_engine_)->EventsD3D12._callback_(##__VA_ARGS__) : \
                              (void)0)
 
 #define INVOKE_ARC_CALLBACK(_engine_, _callback_, ...)     \
-                             (_engine_->EventsARC._callback_ ? \
-                             _engine_->EventsARC._callback_(##__VA_ARGS__) : \
+                             ((_engine_)->EventsARC._callback_ ? \
+                             (_engine_)->EventsARC._callback_(##__VA_ARGS__) : \
                              (void)0)
