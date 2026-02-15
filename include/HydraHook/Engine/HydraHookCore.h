@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018-2026 Benjamin HÃ¶glinger-Stelzer
+Copyright (c) 2018-2026 Benjamin Höglinger-Stelzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ extern "C" {
      *
      * \brief   HydraHook event pre extension initialize
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    20.08.2019
      *
      * \param   Extension   The extension.
@@ -136,7 +136,7 @@ extern "C" {
      *
      * \brief   HydraHook event post extension initialize
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    20.08.2019
      *
      * \param   Extension   The extension.
@@ -263,7 +263,7 @@ extern "C" {
      *
      * \brief   Initializes an HYDRAHOOK_ENGINE_CONFIG struct.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    30.07.2019
      *
      * \param   EngineConfig    The engine configuration.
@@ -288,7 +288,7 @@ extern "C" {
      *          HYDRAHOOK_ENGINE_CONFIG struct. Calling this function is expected to happen in
      *          DllMain() at DLL_PROCESS_ATTACH.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    01.08.2019
      *
      * \param           HostInstance    The host instance handle.
@@ -310,7 +310,7 @@ extern "C" {
      *          invokes the shutdown event callbacks. Calling this function is expected to happen in
      *          DllMain() at DLL_PROCESS_DETACH.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    02.08.2019
      *
      * \param   HostInstance    The host instance.
@@ -328,7 +328,7 @@ extern "C" {
      *          callbacks during engine lifetime. Repeatedly calling this function will free
      *          previously allocated context memory.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    03.08.2019
      *
      * \param           Engine      The engine handle.
@@ -351,7 +351,7 @@ extern "C" {
      *
      * \brief   Frees custom context memory for the supplied engine handle, if any.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    03.08.2019
      *
      * \param   Engine  The engine handle.
@@ -369,7 +369,7 @@ extern "C" {
      * \brief   Returns a pointer to previously allocated custom context memory, or NULL if none
      *          available.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    03.08.2019
      *
      * \param   Engine  The engine handle.
@@ -388,7 +388,7 @@ extern "C" {
      *
      * \brief   Registers one or more Direct3D 9(Ex) render pipeline callbacks.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    05.05.2019
      *
      * \param   Engine      The engine handle.
@@ -412,7 +412,7 @@ extern "C" {
      *
      * \brief   Registers one or more Direct3D 10 render pipeline callbacks.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    05.05.2019
      *
      * \param   Engine      The engine handle.
@@ -436,7 +436,7 @@ extern "C" {
      *
      * \brief   Registers one or more Direct3D 11 render pipeline callbacks.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    05.05.2019
      *
      * \param   Engine      The engine handle.
@@ -460,7 +460,7 @@ extern "C" {
      *
      * \brief   Registers one or more Direct3D 12 render pipeline callbacks.
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    05.05.2019
      *
      * \param   Engine      The engine handle.
@@ -493,7 +493,7 @@ extern "C" {
      *
      * \brief   HydraHook engine log debug
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    16.05.2019
      *
      * \param   Format  Describes the format to use.
@@ -513,7 +513,7 @@ extern "C" {
      *
      * \brief   HydraHook engine log information
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    16.05.2019
      *
      * \param   Format  Describes the format to use.
@@ -533,7 +533,7 @@ extern "C" {
      *
      * \brief   HydraHook engine log warning
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    16.05.2019
      *
      * \param   Format  Describes the format to use.
@@ -553,7 +553,7 @@ extern "C" {
      *
      * \brief   HydraHook engine log error
      *
-     * \author  Benjamin HÃ¶glinger-Stelzer
+     * \author  Benjamin Höglinger-Stelzer
      * \date    16.05.2019
      *
      * \param   Format  Describes the format to use.

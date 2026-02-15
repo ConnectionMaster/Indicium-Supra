@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2018-2026 Benjamin HÃ¶glinger-Stelzer
+Copyright (c) 2018-2026 Benjamin Höglinger-Stelzer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -95,7 +95,7 @@ typedef struct _HYDRAHOOK_D3D10_EVENT_CALLBACKS
  *
  * \brief   The Direct3D 10 event callback collection to initialize.
  *
- * \author  Benjamin HÃ¶glinger-Stelzer
+ * \author  Benjamin Höglinger-Stelzer
  * \date    06.05.2019
  *
  * \param   Callbacks   The callback collection.
