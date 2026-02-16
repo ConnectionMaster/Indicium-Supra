@@ -22,6 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @file DirectInput8.h
+ * @brief DirectInput 8 device vtable indices for optional input hooking.
+ * @internal
+ */
+
 #pragma once
 
 #ifdef HOOK_DINPUT8

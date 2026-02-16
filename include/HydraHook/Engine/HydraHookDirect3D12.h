@@ -1,3 +1,13 @@
+/**
+ * @file HydraHookDirect3D12.h
+ * @brief Direct3D 12 hook callbacks.
+ *
+ * Defines event callbacks for Present, ResizeTarget, and ResizeBuffers.
+ * Use HydraHookEngineSetD3D12EventCallbacks to register.
+ *
+ * @copyright MIT License (c) 2018-2026 Benjamin Höglinger-Stelzer
+ */
+
 /*
 MIT License
 
@@ -30,6 +40,7 @@ SOFTWARE.
 
 #include <dxgi.h>
 
+/** @brief Callback for IDXGISwapChain::Present (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D12_PRESENT)
 VOID
@@ -41,6 +52,7 @@ EVT_HYDRAHOOK_D3D12_PRESENT(
 
 typedef EVT_HYDRAHOOK_D3D12_PRESENT *PFN_HYDRAHOOK_D3D12_PRESENT;
 
+/** @brief Callback for IDXGISwapChain::ResizeTarget (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D12_RESIZE_TARGET)
 VOID
@@ -51,6 +63,7 @@ EVT_HYDRAHOOK_D3D12_RESIZE_TARGET(
 
 typedef EVT_HYDRAHOOK_D3D12_RESIZE_TARGET *PFN_HYDRAHOOK_D3D12_RESIZE_TARGET;
 
+/** @brief Callback for IDXGISwapChain::ResizeBuffers (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D12_RESIZE_BUFFERS)
 VOID
@@ -65,7 +78,9 @@ EVT_HYDRAHOOK_D3D12_RESIZE_BUFFERS(
 
 typedef EVT_HYDRAHOOK_D3D12_RESIZE_BUFFERS *PFN_HYDRAHOOK_D3D12_RESIZE_BUFFERS;
 
-
+/**
+ * @brief Direct3D 12 event callback collection.
+ */
 typedef struct _HYDRAHOOK_D3D12_EVENT_CALLBACKS
 {
     PFN_HYDRAHOOK_D3D12_PRESENT          EvtHydraHookD3D12PrePresent;
@@ -80,16 +95,8 @@ typedef struct _HYDRAHOOK_D3D12_EVENT_CALLBACKS
 } HYDRAHOOK_D3D12_EVENT_CALLBACKS, *PHYDRAHOOK_D3D12_EVENT_CALLBACKS;
 
 /**
- * \fn  VOID FORCEINLINE HYDRAHOOK_D3D12_EVENT_CALLBACKS_INIT( _Out_ PHYDRAHOOK_D3D12_EVENT_CALLBACKS Callbacks )
- *
- * \brief   The Direct3D 12 event callback collection to initialize.
- *
- * \author  Benjamin Höglinger-Stelzer
- * \date    06.05.2019
- *
- * \param   Callbacks   The callback collection.
- *
- * \returns Nothing.
+ * @brief Initializes Direct3D 12 callback collection (zeros all pointers).
+ * @param[out] Callbacks Callback structure to initialize.
  */
 VOID FORCEINLINE HYDRAHOOK_D3D12_EVENT_CALLBACKS_INIT(
     _Out_ PHYDRAHOOK_D3D12_EVENT_CALLBACKS Callbacks

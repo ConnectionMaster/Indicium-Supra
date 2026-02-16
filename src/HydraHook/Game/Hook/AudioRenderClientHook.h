@@ -22,6 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @file AudioRenderClientHook.h
+ * @brief IAudioRenderClient vtable hook for Core Audio interception.
+ * @internal
+ */
 
 #pragma once
 

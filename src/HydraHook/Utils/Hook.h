@@ -1,3 +1,18 @@
+/**
+ * @file Hook.h
+ * @brief C++ wrapper for Microsoft Detours function hooking.
+ *
+ * Provides a type-safe Hook template for attaching/detaching detours with
+ * support for __stdcall and __cdecl conventions. Uses RAII for transaction
+ * management.
+ *
+ * @par Dependencies
+ * Requires detours library and HydraHook::Core::Exceptions::DetourException.
+ *
+ * @internal
+ * @copyright MIT License (c) 2018-2026 Benjamin Höglinger-Stelzer
+ */
+
 /*
 MIT License
 
@@ -28,13 +43,14 @@ SOFTWARE.
 #include <detours/detours.h>
 #include "Exceptions.hpp"
 
-
+/** @brief Supported calling conventions for hook targets. */
 enum class CallConvention
 {
-    stdcall_t,
-    cdecl_t
+    stdcall_t,  /**< __stdcall convention. */
+    cdecl_t     /**< __cdecl convention. */
 };
 
+/** @brief Maps CallConvention to function pointer type. */
 template <CallConvention cc, typename retn, typename convention, typename ...args>
 struct convention;
 
@@ -50,6 +66,12 @@ struct convention<CallConvention::cdecl_t, retn, args...>
     typedef retn (__cdecl *type)(args ...);
 };
 
+/**
+ * @brief RAII Detours hook wrapper for function interception.
+ * @tparam cc Calling convention (stdcall_t or cdecl_t).
+ * @tparam retn Return type.
+ * @tparam args Argument types.
+ */
 template <CallConvention cc, typename retn, typename ...args>
 class Hook
 {
@@ -141,10 +163,12 @@ class Hook
     }
 
 public:
+    /** @brief Constructs an unapplied hook. */
     Hook() : orig_(0), detour_(0), is_applied_(false), has_open_transaction_(false)
     {
     }
 
+    /** @brief Destroys hook; removes if applied. @throws DetourException on abort/remove failure. */
     ~Hook() noexcept(false)
     {
         if (has_open_transaction_)
@@ -166,6 +190,12 @@ public:
         remove();
     }
 
+    /**
+     * @brief Attaches detour to target function.
+     * @param pFunc Pointer to target function (address to patch).
+     * @param detour Detour function (same signature as target).
+     * @throws DetourException on Detours API failure.
+     */
     template <typename T>
     void apply(T pFunc, type detour)
     {
@@ -210,6 +240,7 @@ public:
         is_applied_ = true;
     }
 
+    /** @brief Removes hook if applied. @throws DetourException on Detours API failure. */
     void remove()
     {
         if (!is_applied_)
@@ -255,11 +286,13 @@ public:
         transaction_commit();
     }
 
+    /** @brief Calls the original (unhooked) function. */
     retn call_orig(args ... p)
     {
         return type(orig_)(p...);
     }
 
+    /** @brief Returns true if hook is currently applied. */
     bool is_applied() const
     {
         return is_applied_;

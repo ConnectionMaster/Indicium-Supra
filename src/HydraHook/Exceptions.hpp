@@ -1,3 +1,9 @@
+/**
+ * @file Exceptions.hpp
+ * @brief HydraHook exception types (Detours, Win32, generic).
+ * @internal
+ */
+
 #pragma once
 
 #include <Windows.h>

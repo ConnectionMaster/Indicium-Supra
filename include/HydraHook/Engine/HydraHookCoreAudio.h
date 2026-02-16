@@ -1,3 +1,13 @@
+/**
+ * @file HydraHookCoreAudio.h
+ * @brief Core Audio (IAudioRenderClient) hook callbacks.
+ *
+ * Defines event callbacks for GetBuffer and ReleaseBuffer. Use
+ * HydraHookEngineSetARCEventCallbacks to register.
+ *
+ * @copyright MIT License (c) 2018-2026 Benjamin Höglinger-Stelzer
+ */
+
 /*
 MIT License
 
@@ -29,6 +39,7 @@ SOFTWARE.
 #include "HydraHookCore.h"
 #include <Audioclient.h>
 
+/** @brief Pre-GetBuffer callback for IAudioRenderClient. */
 typedef
 _Function_class_(EVT_HYDRAHOOK_ARC_PRE_GET_BUFFER)
 VOID
@@ -41,6 +52,7 @@ EVT_HYDRAHOOK_ARC_PRE_GET_BUFFER(
 
 typedef EVT_HYDRAHOOK_ARC_PRE_GET_BUFFER *PFN_HYDRAHOOK_ARC_PRE_GET_BUFFER;
 
+/** @brief Post-GetBuffer callback for IAudioRenderClient. */
 typedef
 _Function_class_(EVT_HYDRAHOOK_ARC_POST_GET_BUFFER)
 VOID
@@ -53,6 +65,7 @@ EVT_HYDRAHOOK_ARC_POST_GET_BUFFER(
 
 typedef EVT_HYDRAHOOK_ARC_POST_GET_BUFFER *PFN_HYDRAHOOK_ARC_POST_GET_BUFFER;
 
+/** @brief Pre-ReleaseBuffer callback for IAudioRenderClient. */
 typedef
 _Function_class_(EVT_HYDRAHOOK_ARC_PRE_RELEASE_BUFFER)
 VOID
@@ -65,6 +78,7 @@ EVT_HYDRAHOOK_ARC_PRE_RELEASE_BUFFER(
 
 typedef EVT_HYDRAHOOK_ARC_PRE_RELEASE_BUFFER *PFN_HYDRAHOOK_ARC_PRE_RELEASE_BUFFER;
 
+/** @brief Post-ReleaseBuffer callback for IAudioRenderClient. */
 typedef
 _Function_class_(EVT_HYDRAHOOK_ARC_POST_RELEASE_BUFFER)
 VOID
@@ -77,7 +91,9 @@ EVT_HYDRAHOOK_ARC_POST_RELEASE_BUFFER(
 
 typedef EVT_HYDRAHOOK_ARC_POST_RELEASE_BUFFER *PFN_HYDRAHOOK_ARC_POST_RELEASE_BUFFER;
 
-
+/**
+ * @brief Core Audio (IAudioRenderClient) event callback collection.
+ */
 typedef struct _HYDRAHOOK_ARC_EVENT_CALLBACKS
 {
     PFN_HYDRAHOOK_ARC_PRE_GET_BUFFER         EvtHydraHookARCPreGetBuffer;
@@ -88,6 +104,10 @@ typedef struct _HYDRAHOOK_ARC_EVENT_CALLBACKS
 
 } HYDRAHOOK_ARC_EVENT_CALLBACKS, *PHYDRAHOOK_ARC_EVENT_CALLBACKS;
 
+/**
+ * @brief Initializes Core Audio callback collection (zeros all pointers).
+ * @param[out] Callbacks Callback structure to initialize.
+ */
 VOID FORCEINLINE HYDRAHOOK_ARC_EVENT_CALLBACKS_INIT(
     _Out_ PHYDRAHOOK_ARC_EVENT_CALLBACKS Callbacks
 )
