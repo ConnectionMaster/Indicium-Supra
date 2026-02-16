@@ -324,13 +324,19 @@ HYDRAHOOK_API VOID HydraHookEngineSetARCEventCallbacks(PHYDRAHOOK_ENGINE Engine,
 
 static std::shared_ptr<spdlog::logger> GetHostLogger()
 {
-	static std::once_flag once;
+	static std::mutex mtx;
 	static std::shared_ptr<spdlog::logger> logger;
-	std::call_once(once, []() {
-		auto base = spdlog::get("HYDRAHOOK");
-		logger = base ? base->clone("host") : nullptr;
-	});
-	return logger;
+
+	std::lock_guard<std::mutex> lock(mtx);
+	if (logger) {
+		return logger;
+	}
+	auto base = spdlog::get("HYDRAHOOK");
+	if (base) {
+		logger = base->clone("host");
+		return logger;
+	}
+	return nullptr;
 }
 
 static void HydraHookEngineLogImpl(spdlog::level::level_enum level, LPCSTR Format, va_list args)
