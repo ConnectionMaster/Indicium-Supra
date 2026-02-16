@@ -64,6 +64,7 @@ SOFTWARE.
 // STL
 // 
 #include <map>
+#include <mutex>
 
 //
 // Keep track of HINSTANCE/HANDLE to engine handle association
@@ -321,46 +322,60 @@ HYDRAHOOK_API VOID HydraHookEngineSetARCEventCallbacks(PHYDRAHOOK_ENGINE Engine,
 
 #endif
 
+static std::shared_ptr<spdlog::logger> GetHostLogger()
+{
+	static std::once_flag once;
+	static std::shared_ptr<spdlog::logger> logger;
+	std::call_once(once, []() {
+		auto base = spdlog::get("HYDRAHOOK");
+		logger = base ? base->clone("host") : nullptr;
+	});
+	return logger;
+}
+
+static void HydraHookEngineLogImpl(spdlog::level::level_enum level, LPCSTR Format, va_list args)
+{
+	auto logger = GetHostLogger();
+	if (!logger || !logger->should_log(level)) {
+		return;
+	}
+	char buf[256];
+	vsnprintf(buf, sizeof(buf), Format, args);
+	logger->log(level, buf);
+}
+
+_Use_decl_annotations_
 HYDRAHOOK_API VOID HydraHookEngineLogDebug(LPCSTR Format, ...)
 {
-	auto logger = spdlog::get("HYDRAHOOK")->clone("host");
 	va_list args;
-	char buf[1000]; // TODO: dumb, make better
 	va_start(args, Format);
-	vsnprintf(buf, sizeof(buf), Format, args);
+	HydraHookEngineLogImpl(spdlog::level::debug, Format, args);
 	va_end(args);
-	logger->debug(buf);
 }
 
+_Use_decl_annotations_
 HYDRAHOOK_API VOID HydraHookEngineLogInfo(LPCSTR Format, ...)
 {
-	auto logger = spdlog::get("HYDRAHOOK")->clone("host");
 	va_list args;
-	char buf[1000]; // TODO: dumb, make better
 	va_start(args, Format);
-	vsnprintf(buf, sizeof(buf), Format, args);
+	HydraHookEngineLogImpl(spdlog::level::info, Format, args);
 	va_end(args);
-	logger->info(buf);
 }
 
+_Use_decl_annotations_
 HYDRAHOOK_API VOID HydraHookEngineLogWarning(LPCSTR Format, ...)
 {
-	auto logger = spdlog::get("HYDRAHOOK")->clone("host");
 	va_list args;
-	char buf[1000]; // TODO: dumb, make better
 	va_start(args, Format);
-	vsnprintf(buf, sizeof(buf), Format, args);
+	HydraHookEngineLogImpl(spdlog::level::warn, Format, args);
 	va_end(args);
-	logger->warn(buf);
 }
 
+_Use_decl_annotations_
 HYDRAHOOK_API VOID HydraHookEngineLogError(LPCSTR Format, ...)
 {
-	auto logger = spdlog::get("HYDRAHOOK")->clone("host");
 	va_list args;
-	char buf[1000]; // TODO: dumb, make better
 	va_start(args, Format);
-	vsnprintf(buf, sizeof(buf), Format, args);
+	HydraHookEngineLogImpl(spdlog::level::err, Format, args);
 	va_end(args);
-	logger->error(buf);
 }
