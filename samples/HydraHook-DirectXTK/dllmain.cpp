@@ -28,6 +28,8 @@ SOFTWARE.
 #include <HydraHook/Engine/HydraHookDirect3D11.h>
 #include <HydraHook/Engine/HydraHookCore.h>
 #include <cassert>
+#include <cmath>
+#include <cstdio>
 #include <mutex>
 #include <string>
 
@@ -39,6 +41,11 @@ using namespace DirectX;
 
 static HMODULE g_hModule = nullptr;
 
+static constexpr float MARQUEE_SPEED_PX_PER_SEC = 80.0f;
+static constexpr float MARQUEE_Y = 60.0f;
+static constexpr float FPS_MARGIN = 15.0f;
+static constexpr double FPS_SMOOTH_ALPHA = 0.1;
+
 typedef struct _DX11_TEXT_CTX
 {
 	ID3D11Device* dev = nullptr;
@@ -46,6 +53,10 @@ typedef struct _DX11_TEXT_CTX
 	std::unique_ptr<SpriteBatch> spriteBatch;
 	std::unique_ptr<SpriteFont> spriteFont;
 	std::unique_ptr<CommonStates> commonStates;
+	LARGE_INTEGER marqueeStartTime{};
+	LARGE_INTEGER fpsLastFrameTime{};
+	double fpsSmoothed = 60.0;
+	bool fpsFirstFrame = true;
 } DX11_TEXT_CTX, *PDX11_TEXT_CTX;
 
 EVT_HYDRAHOOK_GAME_HOOKED EvtHydraHookGameHooked;
@@ -257,6 +268,13 @@ void EvtHydraHookD3D11PrePresent(
 	D3D11_TEXTURE2D_DESC bbDesc{};
 	pBackBuffer->GetDesc(&bbDesc);
 
+	LARGE_INTEGER qpcNow, qpcFreq;
+	if (!QueryPerformanceCounter(&qpcNow) || !QueryPerformanceFrequency(&qpcFreq))
+	{
+		pBackBuffer->Release();
+		return;
+	}
+
 	ID3D11RenderTargetView* pRTV = nullptr;
 	HRESULT hr = pCtx->dev->CreateRenderTargetView(pBackBuffer, nullptr, &pRTV);
 	pBackBuffer->Release();
@@ -272,18 +290,67 @@ void EvtHydraHookD3D11PrePresent(
 	vp.MaxDepth = 1.f;
 	pCtx->ctx->RSSetViewports(1, &vp);
 
+	const float viewportWidth = static_cast<float>(bbDesc.Width);
+
+	if (pCtx->fpsFirstFrame)
+	{
+		pCtx->marqueeStartTime = qpcNow;
+		pCtx->fpsLastFrameTime = qpcNow;
+		pCtx->fpsFirstFrame = false;
+	}
+
 	try
 	{
 		pCtx->spriteBatch->Begin(SpriteSortMode_Deferred, pCtx->commonStates->AlphaBlend());
-		pCtx->spriteFont->DrawString(
-			pCtx->spriteBatch.get(),
-			L"Injected via HydraHook by Nefarius",
-			XMFLOAT2(15.0f, 30.0f),
-			Colors::DeepPink,
-			0.0f,
-			XMFLOAT2(0, 0),
-			1.0f
-		);
+
+		// Marquee: time-based scroll, FPS-independent
+		{
+			const wchar_t* marqueeText = L"Injected via HydraHook by Nefarius";
+			XMVECTOR textSize = pCtx->spriteFont->MeasureString(marqueeText);
+			const float textWidth = XMVectorGetX(textSize);
+			const double elapsedSec = static_cast<double>(qpcNow.QuadPart - pCtx->marqueeStartTime.QuadPart) / static_cast<double>(qpcFreq.QuadPart);
+			const float cycleLength = viewportWidth + textWidth;
+			const float offset = static_cast<float>(std::fmod(elapsedSec * MARQUEE_SPEED_PX_PER_SEC, cycleLength));
+			const float marqueeX = viewportWidth - offset;
+
+			pCtx->spriteFont->DrawString(
+				pCtx->spriteBatch.get(),
+				marqueeText,
+				XMFLOAT2(marqueeX, MARQUEE_Y),
+				Colors::DeepPink,
+				0.0f,
+				XMFLOAT2(0, 0),
+				1.0f
+			);
+		}
+
+		// FPS counter: top-right corner
+		{
+			const double deltaSec = static_cast<double>(qpcNow.QuadPart - pCtx->fpsLastFrameTime.QuadPart) / static_cast<double>(qpcFreq.QuadPart);
+			if (deltaSec > 0.0)
+			{
+				const double instantFps = 1.0 / deltaSec;
+				pCtx->fpsSmoothed = pCtx->fpsSmoothed * (1.0 - FPS_SMOOTH_ALPHA) + instantFps * FPS_SMOOTH_ALPHA;
+			}
+
+			wchar_t fpsBuf[32];
+			swprintf_s(fpsBuf, static_cast<size_t>(sizeof(fpsBuf) / sizeof(wchar_t)), L"FPS: %.1f", pCtx->fpsSmoothed);
+			XMVECTOR fpsTextSize = pCtx->spriteFont->MeasureString(fpsBuf);
+			const float fpsTextWidth = XMVectorGetX(fpsTextSize);
+			const float fpsX = viewportWidth - FPS_MARGIN - fpsTextWidth;
+
+			pCtx->spriteFont->DrawString(
+				pCtx->spriteBatch.get(),
+				fpsBuf,
+				XMFLOAT2(fpsX, FPS_MARGIN),
+				Colors::White,
+				0.0f,
+				XMFLOAT2(0, 0),
+				1.0f
+			);
+		}
+
+		pCtx->fpsLastFrameTime = qpcNow;
 		pCtx->spriteBatch->End();
 	}
 	catch (const std::exception& e)
