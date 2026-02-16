@@ -24,5 +24,4 @@ deploy:
   on:
     appveyor_repo_tag: true
 cache:
-- vcpkg
 - vcpkg_installed
