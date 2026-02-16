@@ -64,6 +64,7 @@ SOFTWARE.
 // STL
 // 
 #include <map>
+#include <mutex>
 
 //
 // Keep track of HINSTANCE/HANDLE to engine handle association
@@ -321,46 +322,117 @@ HYDRAHOOK_API VOID HydraHookEngineSetARCEventCallbacks(PHYDRAHOOK_ENGINE Engine,
 
 #endif
 
+/**
+ * @brief Returns a cached host-scoped logger clone for the process-wide "HYDRAHOOK" logger.
+ *
+ * The returned logger is created once on first call and reused for subsequent calls. If the
+ * process-wide "HYDRAHOOK" logger is not available, this function returns `nullptr`.
+ *
+ * @return std::shared_ptr<spdlog::logger> Shared pointer to the cloned "host" logger, or `nullptr` if the base logger does not exist.
+ */
+static std::shared_ptr<spdlog::logger> GetHostLogger()
+{
+	static std::mutex mtx;
+	static std::shared_ptr<spdlog::logger> logger;
+
+	std::lock_guard<std::mutex> lock(mtx);
+	if (logger) {
+		return logger;
+	}
+	auto base = spdlog::get("HYDRAHOOK");
+	if (base) {
+		logger = base->clone("host");
+		return logger;
+	}
+	return nullptr;
+}
+
+/**
+ * @brief Format a printf-style message and emit it to the host logger at the specified level.
+ *
+ * Formats the provided `Format` string with `args` into a temporary buffer and logs the result
+ * via the host-scoped logger if one exists and is enabled for `level`. If no logger is available
+ * or the level is disabled, the function returns without side effects.
+ *
+ * @param level Log severity level to use when emitting the message.
+ * @param Format printf-style format string describing the message.
+ * @param args   Variadic argument list corresponding to `Format`.
+ */
+static void HydraHookEngineLogImpl(spdlog::level::level_enum level, LPCSTR Format, va_list args)
+{
+	auto logger = GetHostLogger();
+	if (!logger || !logger->should_log(level)) {
+		return;
+	}
+	char buf[256];
+	vsnprintf(buf, sizeof(buf), Format, args);
+	logger->log(level, buf);
+}
+
+/**
+ * @brief Logs a formatted message at the debug level to the host logger.
+ *
+ * @param Format Printf-style format string.
+ * @param ... Arguments matching the format specifiers in `Format`.
+ */
+_Use_decl_annotations_
 HYDRAHOOK_API VOID HydraHookEngineLogDebug(LPCSTR Format, ...)
 {
-	auto logger = spdlog::get("HYDRAHOOK")->clone("host");
 	va_list args;
-	char buf[1000]; // TODO: dumb, make better
 	va_start(args, Format);
-	vsnprintf(buf, sizeof(buf), Format, args);
+	HydraHookEngineLogImpl(spdlog::level::debug, Format, args);
 	va_end(args);
-	logger->debug(buf);
 }
 
+/**
+ * @brief Logs a formatted informational message to the host-scoped logger.
+ *
+ * Formats the provided printf-style string and emits it at the info level via the host logger.
+ * If the host logger is not available or not enabled for info-level messages, no output is produced.
+ *
+ * @param Format printf-style format string.
+ * @param ... Values referenced by `Format`.
+ */
+_Use_decl_annotations_
 HYDRAHOOK_API VOID HydraHookEngineLogInfo(LPCSTR Format, ...)
 {
-	auto logger = spdlog::get("HYDRAHOOK")->clone("host");
 	va_list args;
-	char buf[1000]; // TODO: dumb, make better
 	va_start(args, Format);
-	vsnprintf(buf, sizeof(buf), Format, args);
+	HydraHookEngineLogImpl(spdlog::level::info, Format, args);
 	va_end(args);
-	logger->info(buf);
 }
 
+/**
+ * @brief Logs a formatted warning message to the host logger.
+ *
+ * Formats the provided printf-style message and emits it at the warning level
+ * using the host-scoped logger.
+ *
+ * @param Format printf-style format string followed by corresponding arguments.
+ */
+_Use_decl_annotations_
 HYDRAHOOK_API VOID HydraHookEngineLogWarning(LPCSTR Format, ...)
 {
-	auto logger = spdlog::get("HYDRAHOOK")->clone("host");
 	va_list args;
-	char buf[1000]; // TODO: dumb, make better
 	va_start(args, Format);
-	vsnprintf(buf, sizeof(buf), Format, args);
+	HydraHookEngineLogImpl(spdlog::level::warn, Format, args);
 	va_end(args);
-	logger->warn(buf);
 }
 
+/**
+ * @brief Log an error-level message to the host logger using a printf-style format.
+ *
+ * Formats the provided arguments according to `Format` and emits the result at error severity
+ * via the host-scoped logger.
+ *
+ * @param Format printf-style format string.
+ * @param ... Arguments referenced by the format string.
+ */
+_Use_decl_annotations_
 HYDRAHOOK_API VOID HydraHookEngineLogError(LPCSTR Format, ...)
 {
-	auto logger = spdlog::get("HYDRAHOOK")->clone("host");
 	va_list args;
-	char buf[1000]; // TODO: dumb, make better
 	va_start(args, Format);
-	vsnprintf(buf, sizeof(buf), Format, args);
+	HydraHookEngineLogImpl(spdlog::level::err, Format, args);
 	va_end(args);
-	logger->error(buf);
 }
