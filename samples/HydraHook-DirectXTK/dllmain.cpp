@@ -28,6 +28,7 @@ SOFTWARE.
 #include <HydraHook/Engine/HydraHookDirect3D11.h>
 #include <HydraHook/Engine/HydraHookCore.h>
 #include <cassert>
+#include <mutex>
 #include <string>
 
 #include <directxtk/SpriteBatch.h>
@@ -163,7 +164,7 @@ void EvtHydraHookGameHooked(
 	}
 
 	// Placement new to construct the struct (it has non-trivial members)
-	new (pCtx) DX11_TEXT_CTX();
+	new(pCtx) DX11_TEXT_CTX();
 
 	HYDRAHOOK_D3D11_EVENT_CALLBACKS d3d11;
 	HYDRAHOOK_D3D11_EVENT_CALLBACKS_INIT(&d3d11);
@@ -178,7 +179,7 @@ void EvtHydraHookGameHooked(
 // 
 void EvtHydraHookGamePostUnhooked(PHYDRAHOOK_ENGINE EngineHandle)
 {
-	PDX11_TEXT_CTX pCtx = PDX11_TEXT_CTX(HydraHookEngineGetCustomContext(EngineHandle));
+	auto pCtx = PDX11_TEXT_CTX(HydraHookEngineGetCustomContext(EngineHandle));
 	if (pCtx)
 		pCtx->~DX11_TEXT_CTX();
 }
@@ -187,13 +188,16 @@ void EvtHydraHookGamePostUnhooked(PHYDRAHOOK_ENGINE EngineHandle)
 // Present is about to get called
 // 
 void EvtHydraHookD3D11PrePresent(
-	IDXGISwapChain					*pSwapChain,
-	UINT							SyncInterval,
-	UINT							Flags,
-	PHYDRAHOOK_EVT_PRE_EXTENSION     Extension
+	IDXGISwapChain* pSwapChain,
+	UINT SyncInterval,
+	UINT Flags,
+	PHYDRAHOOK_EVT_PRE_EXTENSION Extension
 )
 {
-	const PDX11_TEXT_CTX pCtx = PDX11_TEXT_CTX(Extension->Context);
+	UNREFERENCED_PARAMETER(SyncInterval);
+	UNREFERENCED_PARAMETER(Flags);
+
+	const auto pCtx = PDX11_TEXT_CTX(Extension->Context);
 	ID3D11Device* pDeviceTmp = nullptr;
 
 	if (FAILED(D3D11_DEVICE_FROM_SWAPCHAIN(pSwapChain, &pDeviceTmp)))
@@ -225,7 +229,8 @@ void EvtHydraHookD3D11PrePresent(
 		if (fontPath.empty() || GetFileAttributesW(fontPath.c_str()) == INVALID_FILE_ATTRIBUTES)
 		{
 			pDeviceTmp->Release();
-			HydraHookEngineLogError("Arial.spritefont not found next to DLL. Run MakeSpriteFont on arial.ttf and place output alongside the DLL.");
+			HydraHookEngineLogError(
+				"Arial.spritefont not found next to DLL. Run MakeSpriteFont on arial.ttf and place output alongside the DLL.");
 			return;
 		}
 
@@ -247,34 +252,44 @@ void EvtHydraHookD3D11PrePresent(
 
 	ID3D11Texture2D* pBackBuffer = nullptr;
 	if (FAILED(D3D11_BACKBUFFER_FROM_SWAPCHAIN(pSwapChain, &pBackBuffer)))
-	{
-		HydraHookEngineLogError("Failed to get back buffer from swapchain");
 		return;
-	}
+
+	D3D11_TEXTURE2D_DESC bbDesc{};
+	pBackBuffer->GetDesc(&bbDesc);
 
 	ID3D11RenderTargetView* pRTV = nullptr;
 	HRESULT hr = pCtx->dev->CreateRenderTargetView(pBackBuffer, nullptr, &pRTV);
 	pBackBuffer->Release();
-
 	if (FAILED(hr) || !pRTV)
-	{
-		HydraHookEngineLogError("Failed to create render target view");
 		return;
-	}
 
 	pCtx->ctx->OMSetRenderTargets(1, &pRTV, nullptr);
 
-	pCtx->spriteBatch->Begin(SpriteSortMode_Deferred, pCtx->commonStates->AlphaBlend());
-	pCtx->spriteFont->DrawString(
-		pCtx->spriteBatch.get(),
-		L"Injected via HydraHook by Nefarius",
-		XMFLOAT2(15.0f, 30.0f),
-		Colors::White,
-		0.0f,
-		XMFLOAT2(0, 0),
-		1.0f
-	);
-	pCtx->spriteBatch->End();
+	D3D11_VIEWPORT vp{};
+	vp.Width = (float)bbDesc.Width;
+	vp.Height = (float)bbDesc.Height;
+	vp.MinDepth = 0.f;
+	vp.MaxDepth = 1.f;
+	pCtx->ctx->RSSetViewports(1, &vp);
+
+	try
+	{
+		pCtx->spriteBatch->Begin(SpriteSortMode_Deferred, pCtx->commonStates->AlphaBlend());
+		pCtx->spriteFont->DrawString(
+			pCtx->spriteBatch.get(),
+			L"Injected via HydraHook by Nefarius",
+			XMFLOAT2(15.0f, 30.0f),
+			Colors::DeepPink,
+			0.0f,
+			XMFLOAT2(0, 0),
+			1.0f
+		);
+		pCtx->spriteBatch->End();
+	}
+	catch (const std::exception& e)
+	{
+		HydraHookEngineLogError("SpriteBatch failed: %s", e.what());
+	}
 
 	pRTV->Release();
 }
