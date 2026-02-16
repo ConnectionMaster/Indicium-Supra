@@ -268,6 +268,13 @@ void EvtHydraHookD3D11PrePresent(
 	D3D11_TEXTURE2D_DESC bbDesc{};
 	pBackBuffer->GetDesc(&bbDesc);
 
+	LARGE_INTEGER qpcNow, qpcFreq;
+	if (!QueryPerformanceCounter(&qpcNow) || !QueryPerformanceFrequency(&qpcFreq))
+	{
+		pBackBuffer->Release();
+		return;
+	}
+
 	ID3D11RenderTargetView* pRTV = nullptr;
 	HRESULT hr = pCtx->dev->CreateRenderTargetView(pBackBuffer, nullptr, &pRTV);
 	pBackBuffer->Release();
@@ -282,10 +289,6 @@ void EvtHydraHookD3D11PrePresent(
 	vp.MinDepth = 0.f;
 	vp.MaxDepth = 1.f;
 	pCtx->ctx->RSSetViewports(1, &vp);
-
-	LARGE_INTEGER qpcNow, qpcFreq;
-	if (!QueryPerformanceCounter(&qpcNow) || !QueryPerformanceFrequency(&qpcFreq))
-		return;
 
 	const float viewportWidth = static_cast<float>(bbDesc.Width);
 
@@ -331,7 +334,7 @@ void EvtHydraHookD3D11PrePresent(
 			}
 
 			wchar_t fpsBuf[32];
-			swprintf_s(fpsBuf, L"FPS: %.1f", pCtx->fpsSmoothed);
+			swprintf_s(fpsBuf, static_cast<size_t>(sizeof(fpsBuf) / sizeof(wchar_t)), L"FPS: %.1f", pCtx->fpsSmoothed);
 			XMVECTOR fpsTextSize = pCtx->spriteFont->MeasureString(fpsBuf);
 			const float fpsTextWidth = XMVectorGetX(fpsTextSize);
 			const float fpsX = viewportWidth - FPS_MARGIN - fpsTextWidth;
