@@ -1,0 +1,72 @@
+# Doxyfile for HydraHook - Windows C++ API Documentation
+# Compatible with Doxygen 1.9+ and Visual Studio IntelliSense
+
+PROJECT_NAME           = "HydraHook"
+PROJECT_NUMBER         =
+PROJECT_BRIEF          = "Direct3D and Core Audio hooking library for Windows"
+OUTPUT_DIRECTORY       = docs
+CREATE_SUBDIRS         = NO
+
+# Input
+INPUT                  = include/HydraHook src/HydraHook
+FILE_PATTERNS          = *.h *.hpp *.cpp *.c
+RECURSIVE              = YES
+EXCLUDE                = vcpkg
+EXCLUDE_PATTERNS       = */vcpkg/* */detours/* */spdlog/* *.rc
+
+# Source browsing
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+# Preprocessing
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = NO
+PREDEFINED             = HYDRAHOOK_API= __declspec(dllexport)=
+                         WINAPI= APIENTRY= _In_= _Out_= _In_opt_= _Out_opt_=
+                         _Function_class_(x)=
+                         FORCEINLINE= __forceinline
+
+# Extraction
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+
+# Output formats
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_RTF           = NO
+GENERATE_XML           = NO
+GENERATE_MAN           = NO
+
+# HTML options
+HTML_OUTPUT            = html
+HTML_TIMESTAMP         = YES
+HTML_DYNAMIC_SECTIONS  = NO
+DISABLE_INDEX          = NO
+GENERATE_TREEVIEW      = YES
+
+# Alphabetical class index
+ALPHABETICAL_INDEX     = YES
+
+# Diagram (optional)
+HAVE_DOT               = NO
+
+# C/C++ specific
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = NO
+TYPEDEF_HIDES_STRUCT   = YES
+
+# Warnings
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+
+# @internal - hide from public docs (set to YES to include)
+INTERNAL_DOCS          = NO

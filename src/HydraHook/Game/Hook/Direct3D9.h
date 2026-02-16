@@ -22,6 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @file Direct3D9.h
+ * @brief Direct3D 9 device vtable indices and hook implementation.
+ * @internal
+ */
 
 #pragma once
 

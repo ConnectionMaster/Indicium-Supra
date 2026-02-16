@@ -22,6 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @file Direct3D9Ex.h
+ * @brief Direct3D 9Ex device vtable indices (extends Direct3D9).
+ * @internal
+ */
 
 #pragma once
 

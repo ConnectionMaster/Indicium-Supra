@@ -1,3 +1,13 @@
+/**
+ * @file HydraHookDirect3D10.h
+ * @brief Direct3D 10 hook callbacks and helpers.
+ *
+ * Defines event callbacks for Present, ResizeTarget, and ResizeBuffers.
+ * Use HydraHookEngineSetD3D10EventCallbacks to register.
+ *
+ * @copyright MIT License (c) 2018-2026 Benjamin Höglinger-Stelzer
+ */
+
 /*
 MIT License
 
@@ -31,6 +41,7 @@ SOFTWARE.
 #include <dxgi.h>
 #include <d3d10_1.h>
 
+/** @brief Callback for IDXGISwapChain::Present (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D10_PRESENT)
 VOID
@@ -42,6 +53,7 @@ EVT_HYDRAHOOK_D3D10_PRESENT(
 
 typedef EVT_HYDRAHOOK_D3D10_PRESENT *PFN_HYDRAHOOK_D3D10_PRESENT;
 
+/** @brief Callback for IDXGISwapChain::ResizeTarget (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D10_RESIZE_TARGET)
 VOID
@@ -52,6 +64,7 @@ EVT_HYDRAHOOK_D3D10_RESIZE_TARGET(
 
 typedef EVT_HYDRAHOOK_D3D10_RESIZE_TARGET *PFN_HYDRAHOOK_D3D10_RESIZE_TARGET;
 
+/** @brief Callback for IDXGISwapChain::ResizeBuffers (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D10_RESIZE_BUFFERS)
 VOID
@@ -66,17 +79,9 @@ EVT_HYDRAHOOK_D3D10_RESIZE_BUFFERS(
 
 typedef EVT_HYDRAHOOK_D3D10_RESIZE_BUFFERS *PFN_HYDRAHOOK_D3D10_RESIZE_BUFFERS;
 
-HRESULT
-FORCEINLINE
-D3D10_DEVICE_FROM_SWAPCHAIN(
-    IDXGISwapChain *pSwapChain,
-    ID3D10Device **ppDevice
-)
-{
-    return pSwapChain->GetDevice(__uuidof(ID3D10Device), (PVOID*)ppDevice);
-}
-
-
+/**
+ * @brief Direct3D 10 event callback collection.
+ */
 typedef struct _HYDRAHOOK_D3D10_EVENT_CALLBACKS
 {
     PFN_HYDRAHOOK_D3D10_PRESENT          EvtHydraHookD3D10PrePresent;
@@ -91,16 +96,24 @@ typedef struct _HYDRAHOOK_D3D10_EVENT_CALLBACKS
 } HYDRAHOOK_D3D10_EVENT_CALLBACKS, *PHYDRAHOOK_D3D10_EVENT_CALLBACKS;
 
 /**
- * \fn  VOID FORCEINLINE HYDRAHOOK_D3D10_EVENT_CALLBACKS_INIT( _Out_ PHYDRAHOOK_D3D10_EVENT_CALLBACKS Callbacks )
- *
- * \brief   The Direct3D 10 event callback collection to initialize.
- *
- * \author  Benjamin Höglinger-Stelzer
- * \date    06.05.2019
- *
- * \param   Callbacks   The callback collection.
- *
- * \returns Nothing.
+ * @brief Retrieves ID3D10Device from IDXGISwapChain.
+ * @param[in] pSwapChain Valid swap chain.
+ * @param[out] ppDevice Receives device pointer.
+ * @return S_OK on success.
+ */
+HRESULT
+FORCEINLINE
+D3D10_DEVICE_FROM_SWAPCHAIN(
+    IDXGISwapChain *pSwapChain,
+    ID3D10Device **ppDevice
+)
+{
+    return pSwapChain->GetDevice(__uuidof(ID3D10Device), (PVOID*)ppDevice);
+}
+
+/**
+ * @brief Initializes Direct3D 10 callback collection (zeros all pointers).
+ * @param[out] Callbacks Callback structure to initialize.
  */
 VOID FORCEINLINE HYDRAHOOK_D3D10_EVENT_CALLBACKS_INIT(
     _Out_ PHYDRAHOOK_D3D10_EVENT_CALLBACKS Callbacks

@@ -1,3 +1,11 @@
+/**
+ * @file Global.h
+ * @brief Utility functions for environment expansion and process info.
+ *
+ * @internal
+ * @copyright MIT License (c) 2018-2026 Benjamin Höglinger-Stelzer
+ */
+
 /*
 MIT License
 
@@ -35,6 +43,11 @@ namespace HydraHook
     {
         namespace Util
         {
+            /**
+             * @brief Expands environment variables (e.g. %TEMP%) in a string.
+             * @param str Input string possibly containing %VAR% placeholders.
+             * @return Expanded string.
+             */
             inline std::string expand_environment_variables(const std::string & str)
             {
                 std::string expandedStr;
@@ -55,6 +68,10 @@ namespace HydraHook
                 return expandedStr;
             }
 
+            /**
+             * @brief Returns the full path of the current process executable.
+             * @return Process image path (e.g. \Device\HarddiskVolume1\...\app.exe).
+             */
             inline std::string process_name()
             {
                 const auto nSize = MAX_PATH + 1;

@@ -22,13 +22,24 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @file DXGI.h
+ * @brief IDXGISwapChain vtable indices for D3D10/11/12 hooking.
+ *
+ * Defines vtable offsets for IDXGISwapChain and IDXGISwapChain1 methods
+ * used when installing Present/ResizeBuffers/ResizeTarget hooks.
+ *
+ * @internal
+ */
+
 #pragma once
 
 namespace DXGIHooking
 {
+    /** @brief IDXGISwapChain vtable indices. */
     enum DXGISwapChainVTbl : short
     {
-        // IUnknown
+        /* IUnknown */
         QueryInterface = 0,
         AddRef = 1,
         Release = 2,
@@ -57,9 +68,10 @@ namespace DXGIHooking
 
     namespace DXGI1
     {
+        /** @brief IDXGISwapChain1 vtable indices (extends IDXGISwapChain). */
         enum DXGISwapChain1VTbl : short
         {
-            // IUnknown
+            /* IUnknown */
             QueryInterface = 0,
             AddRef = 1,
             Release = 2,
@@ -100,10 +112,11 @@ namespace DXGIHooking
         };
     }
 
+    /** @brief DXGI vtable size constants. */
     class DXGI
     {
     public:
-        static const int SwapChainVTableElements = 18;
-        static const int SwapChain1VTableElements = 29;
+        static const int SwapChainVTableElements = 18;   /**< IDXGISwapChain method count. */
+        static const int SwapChain1VTableElements = 29;   /**< IDXGISwapChain1 method count. */
     };
 }

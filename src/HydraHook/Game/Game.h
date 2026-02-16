@@ -1,3 +1,14 @@
+/**
+ * @file Game.h
+ * @brief Main hook worker thread entry point.
+ *
+ * HydraHookMainThread runs in a dedicated thread, probing for Direct3D
+ * and Core Audio APIs, then installing hooks and dispatching callbacks.
+ *
+ * @internal
+ * @copyright MIT License (c) 2018-2026 Benjamin Höglinger-Stelzer
+ */
+
 /*
 MIT License
 
@@ -26,4 +37,9 @@ SOFTWARE.
 
 #include <Windows.h>
 
+/**
+ * @brief Main hook worker thread; probes and hooks render/audio APIs.
+ * @param Params PHYDRAHOOK_ENGINE cast to LPVOID.
+ * @return Thread exit code (0 on success).
+ */
 DWORD WINAPI HydraHookMainThread(LPVOID Params);

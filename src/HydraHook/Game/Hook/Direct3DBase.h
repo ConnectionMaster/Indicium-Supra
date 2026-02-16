@@ -22,6 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+/**
+ * @file Direct3DBase.h
+ * @brief Abstract base for Direct3D version-specific hook implementations.
+ *
+ * Provides common interface for vtable-based hooking of Direct3D devices.
+ * Subclasses return vtable indices for Present, Reset, etc.
+ *
+ * @internal
+ */
+
 #pragma once
 
 #include "Window.h"
@@ -31,14 +41,22 @@ SOFTWARE.
 
 namespace Direct3DHooking
 {
+    /**
+     * @brief Abstract base for Direct3D hook implementations.
+     */
     class Direct3DBase
     {
     protected:
-        std::unique_ptr<Window> temp_window;
+        std::unique_ptr<Window> temp_window;  /**< Temporary window for device creation. */
         virtual ~Direct3DBase() {}
+
     public:
         Direct3DBase() {}
 
+        /**
+         * @brief Returns vtable indices for hookable methods (Present, Reset, etc.).
+         * @return Vector of vtable offsets to hook.
+         */
         virtual std::vector<size_t> vtable() const = 0;
     };
 }

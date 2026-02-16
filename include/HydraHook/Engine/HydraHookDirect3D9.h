@@ -1,3 +1,13 @@
+/**
+ * @file HydraHookDirect3D9.h
+ * @brief Direct3D 9/9Ex hook callbacks and helpers.
+ *
+ * Defines event callbacks for Present, Reset, EndScene, PresentEx, and ResetEx.
+ * Use HydraHookEngineSetD3D9EventCallbacks to register. Requires HydraHookCore.h.
+ *
+ * @copyright MIT License (c) 2018-2026 Benjamin Höglinger-Stelzer
+ */
+
 /*
 MIT License
 
@@ -31,6 +41,7 @@ SOFTWARE.
 #include "HydraHookCore.h"
 #include <d3d9.h>
 
+/** @brief Callback for IDirect3DDevice9::Present (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D9_PRESENT)
 VOID
@@ -44,6 +55,7 @@ EVT_HYDRAHOOK_D3D9_PRESENT(
 
 typedef EVT_HYDRAHOOK_D3D9_PRESENT *PFN_HYDRAHOOK_D3D9_PRESENT;
 
+/** @brief Callback for IDirect3DDevice9::Reset (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D9_RESET)
 VOID
@@ -54,6 +66,7 @@ EVT_HYDRAHOOK_D3D9_RESET(
 
 typedef EVT_HYDRAHOOK_D3D9_RESET *PFN_HYDRAHOOK_D3D9_RESET;
 
+/** @brief Callback for IDirect3DDevice9::EndScene (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D9_END_SCENE)
 VOID
@@ -63,6 +76,7 @@ EVT_HYDRAHOOK_D3D9_END_SCENE(
 
 typedef EVT_HYDRAHOOK_D3D9_END_SCENE *PFN_HYDRAHOOK_D3D9_END_SCENE;
 
+/** @brief Callback for IDirect3DDevice9Ex::PresentEx (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D9_PRESENT_EX)
 VOID
@@ -77,6 +91,7 @@ EVT_HYDRAHOOK_D3D9_PRESENT_EX(
 
 typedef EVT_HYDRAHOOK_D3D9_PRESENT_EX *PFN_HYDRAHOOK_D3D9_PRESENT_EX;
 
+/** @brief Callback for IDirect3DDevice9Ex::ResetEx (pre/post). */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D9_RESET_EX)
 VOID
@@ -88,7 +103,9 @@ EVT_HYDRAHOOK_D3D9_RESET_EX(
 
 typedef EVT_HYDRAHOOK_D3D9_RESET_EX *PFN_HYDRAHOOK_D3D9_RESET_EX;
 
-
+/**
+ * @brief Direct3D 9/9Ex event callback collection.
+ */
 typedef struct _HYDRAHOOK_D3D9_EVENT_CALLBACKS
 {
     PFN_HYDRAHOOK_D3D9_PRESENT       EvtHydraHookD3D9PrePresent;
@@ -109,16 +126,8 @@ typedef struct _HYDRAHOOK_D3D9_EVENT_CALLBACKS
 } HYDRAHOOK_D3D9_EVENT_CALLBACKS, *PHYDRAHOOK_D3D9_EVENT_CALLBACKS;
 
 /**
- * \fn  VOID FORCEINLINE HYDRAHOOK_D3D9_EVENT_CALLBACKS_INIT( _Out_ PHYDRAHOOK_D3D9_EVENT_CALLBACKS Callbacks )
- *
- * \brief   The Direct3D 9(Ex) event callback collection to initialize.
- *
- * \author  Benjamin Höglinger-Stelzer
- * \date    06.05.2019
- *
- * \param   Callbacks   The callback collection.
- *
- * \returns Nothing.
+ * @brief Initializes Direct3D 9 callback collection (zeros all pointers).
+ * @param[out] Callbacks Callback structure to initialize.
  */
 VOID FORCEINLINE HYDRAHOOK_D3D9_EVENT_CALLBACKS_INIT(
     _Out_ PHYDRAHOOK_D3D9_EVENT_CALLBACKS Callbacks
@@ -131,11 +140,21 @@ VOID FORCEINLINE HYDRAHOOK_D3D9_EVENT_CALLBACKS_INIT(
 extern "C" {
 #endif
 
+    /**
+     * @brief Resolves engine handle from IDirect3DDevice9 pointer.
+     * @param[in] Device Valid D3D9 device pointer.
+     * @return Engine handle, or NULL if not found.
+     */
     HYDRAHOOK_API PHYDRAHOOK_ENGINE HydraHookEngineGetHandleFromD3D9Device(
         _In_
         LPDIRECT3DDEVICE9 Device
     );
 
+    /**
+     * @brief Resolves engine handle from IDirect3DDevice9Ex pointer.
+     * @param[in] Device Valid D3D9Ex device pointer.
+     * @return Engine handle, or NULL if not found.
+     */
     HYDRAHOOK_API PHYDRAHOOK_ENGINE HydraHookEngineGetHandleFromD3D9ExDevice(
         _In_
         LPDIRECT3DDEVICE9EX Device

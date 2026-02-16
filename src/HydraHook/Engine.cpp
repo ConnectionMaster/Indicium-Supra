@@ -1,3 +1,13 @@
+/**
+ * @file Engine.cpp
+ * @brief HydraHook engine implementation - create, destroy, context, callbacks.
+ *
+ * Implements the public C API declared in HydraHookCore.h. Uses spdlog for
+ * logging and maintains HMODULE-to-engine handle mapping.
+ *
+ * @internal
+ */
+
 /*
 MIT License
 
