@@ -24,8 +24,6 @@ API-Hooking and rendering framework for DirectX-based games.
 
 ### Prerequisites
 
-**Samples are currently broken on this branch due to major API redesign!**
-
 - Visual Studio **2022** ([Community Edition](https://visualstudio.microsoft.com/downloads/) is free)
 - [Windows SDK](https://learn.microsoft.com/en-us/windows/apps/windows-sdk/downloads)
 
