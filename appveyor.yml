@@ -18,6 +18,8 @@ build:
 artifacts:
 - path: 'bin\**\*.dll'
   name: HydraHook
+- path: 'bin\**\*.spritefont'
+  name: HydraHook-SpriteFont
 deploy:
 - provider: Environment
   name: BUILDBOT
