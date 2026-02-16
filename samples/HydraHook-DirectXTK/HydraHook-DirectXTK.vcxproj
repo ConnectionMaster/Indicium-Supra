@@ -190,6 +190,9 @@
   <ItemGroup>
     <ResourceCompile Include="HydraHook-DirectXTK.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
@@ -199,7 +202,6 @@
       <SpriteFontOut>$(OutDir)Arial.spritefont</SpriteFontOut>
     </PropertyGroup>
     <MakeDir Directories="$(OutDir)" Condition="!Exists('$(OutDir)')" />
-    <Exec Command="&quot;$(MakeSpriteFontExe)&quot; Arial &quot;$(SpriteFontOut)&quot; /FontSize:24"
-          Condition="Exists('$(MakeSpriteFontExe)')" />
+    <Exec Command="&quot;$(MakeSpriteFontExe)&quot; Arial &quot;$(SpriteFontOut)&quot; /FontSize:24" Condition="Exists('$(MakeSpriteFontExe)')" />
   </Target>
 </Project>
