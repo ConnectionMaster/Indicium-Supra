@@ -357,3 +357,4 @@ MigrationBackup/
 /src/HydraHook/Release_LIB
 *.7z
 /src/HydraHook/Debug_LIB
+/src/HydraHook/Win32
