@@ -41,6 +41,9 @@ SOFTWARE.
 #include <imgui_impl_dx9.h>
 #include <imgui_impl_dx10.h>
 #include <imgui_impl_dx11.h>
+#ifdef _WIN64
+#include <imgui_impl_dx12.h>
+#endif
 #include <imgui_impl_win32.h>
 
 t_WindowProc OriginalDefWindowProc = nullptr;
@@ -75,6 +78,9 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 	cfg.Direct3D.HookDirect3D9 = TRUE;
 	cfg.Direct3D.HookDirect3D10 = TRUE;
 	cfg.Direct3D.HookDirect3D11 = TRUE;
+#ifdef _WIN64
+	cfg.Direct3D.HookDirect3D12 = TRUE;
+#endif
 
 	cfg.EvtHydraHookGameHooked = EvtHydraHookGameHooked;
 
@@ -158,6 +164,10 @@ void EvtHydraHookGameHooked(
 	d3d11.EvtHydraHookD3D11PreResizeBuffers = EvtHydraHookD3D11PreResizeBuffers;
 	d3d11.EvtHydraHookD3D11PostResizeBuffers = EvtHydraHookD3D11PostResizeBuffers;
 
+	HYDRAHOOK_D3D12_EVENT_CALLBACKS d3d12;
+	HYDRAHOOK_D3D12_EVENT_CALLBACKS_INIT(&d3d12);
+	// TODO: implement me!
+
 	switch (GameVersion)
 	{
 	case HydraHookDirect3DVersion9:
@@ -168,6 +178,9 @@ void EvtHydraHookGameHooked(
 		break;
 	case HydraHookDirect3DVersion11:
 		HydraHookEngineSetD3D11EventCallbacks(EngineHandle, &d3d11);
+		break;
+	case HydraHookDirect3DVersion12:
+		HydraHookEngineSetD3D12EventCallbacks(EngineHandle, &d3d12);
 		break;
 	}
 }
@@ -668,7 +681,7 @@ void RenderScene()
 		static int values_offset = 0;
 		static float refresh_time = 0.0f;
 		if (!animate || refresh_time == 0.0f)
-			refresh_time = ImGui::GetTime();
+			refresh_time = (float)ImGui::GetTime();
 		while (refresh_time < ImGui::GetTime()) // Create dummy data at fixed 60 hz rate for the demo
 		{
 			static float phase = 0.0f;
