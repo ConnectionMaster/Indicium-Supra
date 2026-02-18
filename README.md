@@ -104,5 +104,5 @@ This project uses the following libraries (via [vcpkg](https://github.com/micros
 - [DX9-Overlay-API](https://github.com/agrippa1994/DX9-Overlay-API)
 - [Creating a render target in DirectX 11](https://www.hlsl.co.uk/blog/2014/11/19/creating-a-render-target-in-directx11)
 - [ion RE Library](https://github.com/scen/ionlib)
-- [C# – Screen capture and overlays for Direct3D 9, 10 and 11 using API hooks](https://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/)
+- [C# – Screen capture and overlays for Direct3D 9, 10 and 11 using API hooks](https://web.archive.org/web/20240922031432/https://spazzarama.com/2011/03/14/c-screen-capture-and-overlays-for-direct3d-9-10-and-11-using-api-hooks/)
 - [HelloD3D12](https://github.com/GPUOpen-LibrariesAndSDKs/HelloD3D12)
