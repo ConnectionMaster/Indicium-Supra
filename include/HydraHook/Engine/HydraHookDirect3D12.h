@@ -128,10 +128,10 @@ EVT_HYDRAHOOK_D3D12_POST_RESIZE_BUFFERS(
 typedef EVT_HYDRAHOOK_D3D12_POST_RESIZE_BUFFERS *PFN_HYDRAHOOK_D3D12_POST_RESIZE_BUFFERS;
 
 /**
- * @brief Retrieves ID3D12Device from IDXGISwapChain.
- * @param[in] pSwapChain Valid swap chain.
- * @param[out] ppDevice Receives device pointer.
- * @return S_OK on success.
+ * Obtain the D3D12 device associated with a swap chain.
+ * @param[in] pSwapChain Swap chain to query for its device.
+ * @param[out] ppDevice Receives the ID3D12Device pointer; the returned interface is AddRef'd on success and must be Release'd by the caller.
+ * @return `S_OK` on success; otherwise an HRESULT error code.
  */
 HRESULT
 FORCEINLINE
@@ -178,8 +178,9 @@ typedef struct _HYDRAHOOK_D3D12_EVENT_CALLBACKS
 } HYDRAHOOK_D3D12_EVENT_CALLBACKS, *PHYDRAHOOK_D3D12_EVENT_CALLBACKS;
 
 /**
- * @brief Initializes Direct3D 12 callback collection (zeros all pointers).
- * @param[out] Callbacks Callback structure to initialize.
+ * Initialize a HYDRAHOOK_D3D12_EVENT_CALLBACKS structure by zeroing its memory.
+ *
+ * @param[out] Callbacks Pointer to the callback structure to initialize; all callback members will be set to NULL.
  */
 VOID FORCEINLINE HYDRAHOOK_D3D12_EVENT_CALLBACKS_INIT(
     _Out_ PHYDRAHOOK_D3D12_EVENT_CALLBACKS Callbacks

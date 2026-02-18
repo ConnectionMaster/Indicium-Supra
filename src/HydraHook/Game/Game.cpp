@@ -96,14 +96,19 @@ void HookDInput8(size_t* vtable8);
 #endif
 
 /**
- * \fn  void HydraHookMainThread(LPVOID Params)
+ * @brief Entry point for the HydraHook engine worker thread that initializes, installs,
+ *        and manages all runtime hooks for supported subsystems (D3D9/10/11/12, Core Audio,
+ *        DirectInput8) and handles graceful shutdown.
  *
- * \brief   HydraHook Engine main thread. All the hooking happens here.
+ * The thread sets up per-API hooks, captures runtime state required by the render/audio
+ * pipelines, wires pre/post extension callbacks, waits for a cancellation event, then
+ * uninstalls hooks and exits the host DLL thread.
  *
- * \author  Benjamin "Nefarius" Höglinger-Stelzer
- * \date    13.06.2018
- *
- * \param   Params  Options for controlling the operation.
+ * @param Params Pointer to a PHYDRAHOOK_ENGINE instance (passed as LPVOID). The function
+ *               interprets this parameter as the engine context used for configuration,
+ *               event callbacks, and shared state.
+ * @return DWORD Thread exit code. Note: the function ends the thread via FreeLibraryAndExitThread,
+ *               so it does not return to its caller in the usual way.
  */
 DWORD WINAPI HydraHookMainThread(LPVOID Params)
 {
@@ -1311,6 +1316,15 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
     FreeLibraryAndExitThread(engine->HostInstance, 0);
 }
 
+/**
+ * @brief Retrieves the ID3D12CommandQueue associated with a DXGI swap chain.
+ *
+ * Looks up a command queue first from the swap-chain-to-queue mapping populated at swap-chain creation,
+ * and if not found, falls back to a device-to-queue mapping captured at runtime via ExecuteCommandLists.
+ *
+ * @param pSwapChain The swap chain to query; may be null.
+ * @return ID3D12CommandQueue* The associated command queue with its reference count incremented via `AddRef`, or `nullptr` if none is available or `pSwapChain` is null.
+ */
 ID3D12CommandQueue* GetD3D12CommandQueueForSwapChain(IDXGISwapChain* pSwapChain)
 {
 #ifndef HYDRAHOOK_NO_D3D12
@@ -1342,6 +1356,13 @@ ID3D12CommandQueue* GetD3D12CommandQueueForSwapChain(IDXGISwapChain* pSwapChain)
 }
 
 #ifdef HOOK_DINPUT8
+/**
+ * @brief Installs hooks for key IDirectInputDevice8 methods on the provided vtable.
+ *
+ * Attaches wrappers for Acquire, GetDeviceData, GetDeviceInfo, GetDeviceState, and GetObjectInfo that perform a one-time informational log when each method is first invoked and then invoke the original implementation.
+ *
+ * @param vtable8 Pointer to the IDirectInputDevice8 virtual function table (array of function pointers) where hooks will be installed.
+ */
 void HookDInput8(size_t* vtable8)
 {
     auto& logger = Logger::get(__func__);
