@@ -135,4 +135,7 @@
   <ItemGroup>
     <ResourceCompile Include="HydraHook.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
 </Project>
