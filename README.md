@@ -60,13 +60,13 @@ The following screenshots show [imgui](https://github.com/ocornut/imgui) being r
 
 Half-Life 2, 32-Bit
 
-![Half-Life 2](https://thumbs.gfycat.com/AltruisticElectricIberianmole-size_restricted.gif)
+![Half-Life 2](https://placehold.co/640x360/e8e8e8/999999?text=Half-Life+2+Demo+Screenshot+%28placeholder%29)
 
 ### DirectX 9 Ex
 
 Castlevania: Lords of Shadow, 32-Bit
 
-![Castlevania: Lords of Shadow](https://thumbs.gfycat.com/DeafeningSomeKob-size_restricted.gif)
+![Castlevania: Lords of Shadow](https://placehold.co/640x360/e8e8e8/999999?text=Castlevania+Lords+of+Shadow+Demo+Screenshot+%28placeholder%29)
 
 ### DirectX 10
 
