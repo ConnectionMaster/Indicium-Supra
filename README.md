@@ -18,7 +18,7 @@ API-Hooking and rendering framework for DirectX-based games.
 - DirectX 9.0 Extended (Vista+)
 - DirectX 10
 - DirectX 11
-- DirectX 12 (implemented but untested)
+- DirectX 12
 
 ## How to build
 
