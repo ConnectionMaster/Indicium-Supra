@@ -15,6 +15,9 @@ API-Hooking and rendering framework for DirectX-based games.
 > [!CAUTION]
 > Use caution when injecting HydraHook into any game protected by anti-cheat software. API hooking and DLL injection are commonly detected by anti-cheat systems and may result in permanent bans from online services. Use only with games you own and in environments where such use is permitted.
 
+> [!NOTE]
+> The authors of this project do not condone the use of HydraHook in cheating software. The project's motivation has been curiosity and education entirely.
+
 ## Supported DirectX versions
 
 - DirectX 9.0
