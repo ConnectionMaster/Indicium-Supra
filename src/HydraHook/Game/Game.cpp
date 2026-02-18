@@ -79,6 +79,23 @@ static std::mutex g_d3d12QueueMapMutex;
 static std::unordered_map<IDXGISwapChain*, ID3D12CommandQueue*> g_d3d12SwapChainToQueue;
 /// Runtime capture: device -> queue (for mid-process injection when CreateSwapChain already ran)
 static std::unordered_map<ID3D12Device*, ID3D12CommandQueue*> g_d3d12DeviceToQueue;
+
+static void D3D12_ReleaseQueueMaps()
+{
+	std::lock_guard<std::mutex> lock(g_d3d12QueueMapMutex);
+	for (auto& kv : g_d3d12SwapChainToQueue)
+	{
+		if (kv.second)
+			kv.second->Release();
+	}
+	g_d3d12SwapChainToQueue.clear();
+	for (auto& kv : g_d3d12DeviceToQueue)
+	{
+		if (kv.second)
+			kv.second->Release();
+	}
+	g_d3d12DeviceToQueue.clear();
+}
 #endif
 
 // NOTE: DirectInput hooking is technically implemented but not really useful
@@ -1293,6 +1310,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
         swapChainPresent12Hook.remove();
         swapChainResizeTarget12Hook.remove();
         swapChainResizeBuffers12Hook.remove();
+        D3D12_ReleaseQueueMaps();
 #endif
 
 #ifndef HYDRAHOOK_NO_COREAUDIO

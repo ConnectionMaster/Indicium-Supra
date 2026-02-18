@@ -947,6 +947,7 @@ void EvtHydraHookD3D12PreResizeBuffers(
 	(void)Extension;
 
 	ImGui_ImplDX12_InvalidateDeviceObjects();
+	D3D12_WaitForGpu();
 	D3D12_CleanupOverlayResources();
 	g_d3d12_srvDescriptorCount = 0;
 }
