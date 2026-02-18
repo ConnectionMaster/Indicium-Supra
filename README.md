@@ -43,7 +43,7 @@ Pre-built binaries are available from the [buildbot](https://buildbot.nefarius.a
 Inject the resulting host library (e.g. `HydraHook-ImGui.dll`) into the target process first using a DLL injection utility of your choice (you can ofc. [use mine as well](https://github.com/nefarius/Injector)). The following example loads the [imgui sample](samples/HydraHook-ImGui):
 
 ```PowerShell
-.\Injector -i -n hl2.exe HydraHook-ImGui.dll
+.\Injector -n hl2.exe -i HydraHook-ImGui.dll
 ```
 
 Just make sure your host library doesn't require any external dependencies not present in the process context or you'll get a `LoadLibrary failed` error.
