@@ -978,7 +978,11 @@ void EvtHydraHookD3D12PostResizeBuffers(
 	(void)SwapChainFlags;
 	(void)Extension;
 
-	D3D12_CreateOverlayResources(pSwapChain);
+	if (!D3D12_CreateOverlayResources(pSwapChain))
+	{
+		HydraHookEngineLogError("D3D12_CreateOverlayResources failed after resize");
+		return;
+	}
 	ImGui_ImplDX12_CreateDeviceObjects();
 }
 
