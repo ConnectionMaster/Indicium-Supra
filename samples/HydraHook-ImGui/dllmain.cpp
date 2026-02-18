@@ -184,9 +184,11 @@ void EvtHydraHookGameHooked(
 	case HydraHookDirect3DVersion11:
 		HydraHookEngineSetD3D11EventCallbacks(EngineHandle, &d3d11);
 		break;
+#ifdef _WIN64
 	case HydraHookDirect3DVersion12:
 		HydraHookEngineSetD3D12EventCallbacks(EngineHandle, &d3d12);
 		break;
+#endif
 	}
 }
 
