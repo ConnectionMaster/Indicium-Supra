@@ -594,8 +594,9 @@ static UINT g_d3d12_srvDescriptorCount = 0;
 /**
  * @brief Allocates the next available shader-visible SRV descriptor from the internal DX12 descriptor heap.
  *
- * Attempts to produce CPU and GPU descriptor handles for a new SRV descriptor and advances the internal allocation index.
- * If the descriptor heap is exhausted, the function returns without modifying the output handles.
+ * Produces CPU and GPU descriptor handles for a new SRV and advances g_d3d12_srvDescriptorCount.
+ * When the heap is exhausted (g_d3d12_srvDescriptorCount >= D3D12_SRV_HEAP_SIZE), the function
+ * zeroes *out_cpu and *out_gpu and returns; callers receive zeroed handles on allocation failure.
  *
  * @param out_cpu Pointer to receive the CPU descriptor handle for the allocated SRV.
  * @param out_gpu Pointer to receive the GPU descriptor handle for the allocated SRV.
