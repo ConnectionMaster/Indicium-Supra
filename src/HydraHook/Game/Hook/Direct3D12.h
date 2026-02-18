@@ -29,6 +29,11 @@ SOFTWARE.
 #include <dxgi.h>
 #include <d3d12.h>
 
+/**
+ * Retrieve the ID3D12CommandQueue virtual function table pointer used for hooking ExecuteCommandLists.
+ *
+ * @returns Pointer to the ID3D12CommandQueue vtable (array of function pointers).
+ */
 namespace Direct3D12Hooking
 {
     class Direct3D12 :
@@ -42,5 +47,7 @@ namespace Direct3D12Hooking
         Direct3D12();
         ~Direct3D12();
         std::vector<size_t> vtable() const override;
+        /** @brief Returns the ID3D12CommandQueue vtable (for ExecuteCommandLists hook). */
+        void** commandQueueVtable() const { return pQueue ? *reinterpret_cast<void***>(pQueue) : nullptr; }
     };
 }

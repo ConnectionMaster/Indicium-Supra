@@ -302,11 +302,30 @@ HYDRAHOOK_API VOID HydraHookEngineSetD3D11EventCallbacks(PHYDRAHOOK_ENGINE Engin
 
 #ifndef HYDRAHOOK_NO_D3D12
 
+/**
+ * @brief Sets the engine's Direct3D12 event callback table.
+ *
+ * Copies the provided D3D12 event callbacks into the engine's D3D12 callback slot.
+ *
+ * @param Engine Pointer to the engine whose D3D12 callbacks will be updated. If `nullptr`, the function does nothing.
+ * @param Callbacks Pointer to the callback table to copy from.
+ */
 HYDRAHOOK_API VOID HydraHookEngineSetD3D12EventCallbacks(PHYDRAHOOK_ENGINE Engine, PHYDRAHOOK_D3D12_EVENT_CALLBACKS Callbacks)
 {
 	if (Engine) {
 		Engine->EventsD3D12 = *Callbacks;
 	}
+}
+
+/**
+ * @brief Retrieves the ID3D12CommandQueue associated with a given DXGI swap chain.
+ *
+ * @param pSwapChain Pointer to the IDXGISwapChain whose associated command queue is requested; may be nullptr.
+ * @return ID3D12CommandQueue* Pointer to the associated ID3D12CommandQueue, or nullptr if no queue is found.
+ */
+HYDRAHOOK_API ID3D12CommandQueue* HydraHookEngineGetD3D12CommandQueue(IDXGISwapChain* pSwapChain)
+{
+	return GetD3D12CommandQueueForSwapChain(pSwapChain);
 }
 
 #endif

@@ -32,6 +32,9 @@ SOFTWARE.
 #include <HydraHook/Engine/HydraHookDirect3D9.h>
 #include <HydraHook/Engine/HydraHookDirect3D10.h>
 #include <HydraHook/Engine/HydraHookDirect3D11.h>
+#ifdef _WIN64
+#include <HydraHook/Engine/HydraHookDirect3D12.h>
+#endif
 
 typedef LRESULT(WINAPI *t_WindowProc)(
 	_In_ HWND hWnd,
@@ -78,6 +81,11 @@ EVT_HYDRAHOOK_D3D11_PRE_PRESENT EvtHydraHookD3D11Present;
 EVT_HYDRAHOOK_D3D11_PRE_RESIZE_BUFFERS EvtHydraHookD3D11PreResizeBuffers;
 EVT_HYDRAHOOK_D3D11_POST_RESIZE_BUFFERS EvtHydraHookD3D11PostResizeBuffers;
 
+#ifdef _WIN64
+EVT_HYDRAHOOK_D3D12_PRE_PRESENT EvtHydraHookD3D12Present;
+EVT_HYDRAHOOK_D3D12_PRE_RESIZE_BUFFERS EvtHydraHookD3D12PreResizeBuffers;
+EVT_HYDRAHOOK_D3D12_POST_RESIZE_BUFFERS EvtHydraHookD3D12PostResizeBuffers;
+#endif
 
 /**
  * \fn	TOGGLE_STATE(int key, bool& toggle)

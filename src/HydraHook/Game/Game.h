@@ -37,6 +37,17 @@ SOFTWARE.
 
 #include <Windows.h>
 
+struct IDXGISwapChain;
+struct ID3D12CommandQueue;
+
+/**
+ * @brief Returns the D3D12 command queue associated with a swap chain.
+ * Works for both early injection (CreateSwapChain hook) and mid-process injection (ExecuteCommandLists hook).
+ * @param pSwapChain The swap chain to query.
+ * @return The command queue with AddRef, or nullptr if not yet captured.
+ */
+ID3D12CommandQueue* GetD3D12CommandQueueForSwapChain(IDXGISwapChain* pSwapChain);
+
 /**
  * @brief Main hook worker thread; probes and hooks render/audio APIs.
  * @param Params PHYDRAHOOK_ENGINE cast to LPVOID.
