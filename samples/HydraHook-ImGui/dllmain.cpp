@@ -42,6 +42,7 @@ SOFTWARE.
 #include <imgui_impl_dx10.h>
 #include <imgui_impl_dx11.h>
 #ifdef _WIN64
+#include <dxgi1_4.h>
 #include <imgui_impl_dx12.h>
 #endif
 #include <imgui_impl_win32.h>
@@ -164,9 +165,13 @@ void EvtHydraHookGameHooked(
 	d3d11.EvtHydraHookD3D11PreResizeBuffers = EvtHydraHookD3D11PreResizeBuffers;
 	d3d11.EvtHydraHookD3D11PostResizeBuffers = EvtHydraHookD3D11PostResizeBuffers;
 
+#ifdef _WIN64
 	HYDRAHOOK_D3D12_EVENT_CALLBACKS d3d12;
 	HYDRAHOOK_D3D12_EVENT_CALLBACKS_INIT(&d3d12);
-	// TODO: implement me!
+	d3d12.EvtHydraHookD3D12PrePresent = EvtHydraHookD3D12Present;
+	d3d12.EvtHydraHookD3D12PreResizeBuffers = EvtHydraHookD3D12PreResizeBuffers;
+	d3d12.EvtHydraHookD3D12PostResizeBuffers = EvtHydraHookD3D12PostResizeBuffers;
+#endif
 
 	switch (GameVersion)
 	{
@@ -562,6 +567,321 @@ void EvtHydraHookD3D11PostResizeBuffers(
 	pDevice->CreateRenderTargetView(pBackBuffer, NULL, &g_d3d11_mainRenderTargetView);
 	pBackBuffer->Release();
 }
+
+#pragma endregion
+
+#pragma region D3D12
+
+#ifdef _WIN64
+
+static constexpr UINT D3D12_NUM_BACK_BUFFERS = 2;
+static constexpr UINT D3D12_NUM_FRAMES_IN_FLIGHT = 2;
+static constexpr UINT D3D12_SRV_HEAP_SIZE = 64;
+
+static ID3D12Device* g_d3d12_pDevice = nullptr;
+static ID3D12CommandQueue* g_d3d12_pCommandQueue = nullptr;
+static ID3D12CommandAllocator* g_d3d12_pCommandAllocator = nullptr;
+static ID3D12GraphicsCommandList* g_d3d12_pCommandList = nullptr;
+static ID3D12Fence* g_d3d12_pFence = nullptr;
+static HANDLE g_d3d12_hFenceEvent = nullptr;
+static UINT64 g_d3d12_fenceLastSignaledValue = 0;
+static ID3D12DescriptorHeap* g_d3d12_pRtvDescHeap = nullptr;
+static ID3D12DescriptorHeap* g_d3d12_pSrvDescHeap = nullptr;
+static ID3D12Resource* g_d3d12_mainRenderTargetResource[D3D12_NUM_BACK_BUFFERS] = {};
+static D3D12_CPU_DESCRIPTOR_HANDLE g_d3d12_mainRenderTargetDescriptor[D3D12_NUM_BACK_BUFFERS] = {};
+static UINT g_d3d12_rtvDescriptorSize = 0;
+static UINT g_d3d12_srvDescriptorIncrement = 0;
+static UINT g_d3d12_numBackBuffers = D3D12_NUM_BACK_BUFFERS;
+static UINT g_d3d12_srvDescriptorCount = 0;
+
+static void D3D12_SrvDescriptorAlloc(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu)
+{
+	(void)info;
+	if (g_d3d12_srvDescriptorCount >= D3D12_SRV_HEAP_SIZE)
+		return;
+	D3D12_CPU_DESCRIPTOR_HANDLE cpu = g_d3d12_pSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_GPU_DESCRIPTOR_HANDLE gpu = g_d3d12_pSrvDescHeap->GetGPUDescriptorHandleForHeapStart();
+	cpu.ptr += g_d3d12_srvDescriptorCount * g_d3d12_srvDescriptorIncrement;
+	gpu.ptr += g_d3d12_srvDescriptorCount * g_d3d12_srvDescriptorIncrement;
+	g_d3d12_srvDescriptorCount++;
+	*out_cpu = cpu;
+	*out_gpu = gpu;
+}
+
+static void D3D12_SrvDescriptorFree(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
+{
+	(void)info;
+	(void)cpu_handle;
+	(void)gpu_handle;
+}
+
+static void D3D12_CreateOverlayResources(IDXGISwapChain* pSwapChain)
+{
+	ID3D12Resource* pBackBuffer = nullptr;
+	if (FAILED(D3D12_BACKBUFFER_FROM_SWAPCHAIN(pSwapChain, &pBackBuffer, 0)))
+	{
+		HydraHookEngineLogError("Couldn't get back buffer from swapchain");
+		return;
+	}
+
+	DXGI_SWAP_CHAIN_DESC sd;
+	pSwapChain->GetDesc(&sd);
+	g_d3d12_numBackBuffers = sd.BufferCount;
+	if (g_d3d12_numBackBuffers > D3D12_NUM_BACK_BUFFERS)
+		g_d3d12_numBackBuffers = D3D12_NUM_BACK_BUFFERS;
+
+	D3D12_DESCRIPTOR_HEAP_DESC rtvDesc = {};
+	rtvDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvDesc.NumDescriptors = g_d3d12_numBackBuffers;
+	rtvDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	rtvDesc.NodeMask = 1;
+	if (FAILED(g_d3d12_pDevice->CreateDescriptorHeap(&rtvDesc, IID_PPV_ARGS(&g_d3d12_pRtvDescHeap))))
+	{
+		pBackBuffer->Release();
+		HydraHookEngineLogError("Couldn't create RTV descriptor heap");
+		return;
+	}
+
+	g_d3d12_rtvDescriptorSize = g_d3d12_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = g_d3d12_pRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
+
+	for (UINT i = 0; i < g_d3d12_numBackBuffers; i++)
+	{
+		ID3D12Resource* pBuffer = nullptr;
+		if (FAILED(pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pBuffer))))
+		{
+			pBackBuffer->Release();
+			HydraHookEngineLogError("Couldn't get swap chain buffer %u", i);
+			return;
+		}
+		g_d3d12_pDevice->CreateRenderTargetView(pBuffer, nullptr, rtvHandle);
+		g_d3d12_mainRenderTargetResource[i] = pBuffer;
+		g_d3d12_mainRenderTargetDescriptor[i] = rtvHandle;
+		rtvHandle.ptr += g_d3d12_rtvDescriptorSize;
+	}
+	pBackBuffer->Release();
+}
+
+static void D3D12_CleanupOverlayResources()
+{
+	for (UINT i = 0; i < g_d3d12_numBackBuffers; i++)
+	{
+		if (g_d3d12_mainRenderTargetResource[i])
+		{
+			g_d3d12_mainRenderTargetResource[i]->Release();
+			g_d3d12_mainRenderTargetResource[i] = nullptr;
+		}
+	}
+	if (g_d3d12_pRtvDescHeap)
+	{
+		g_d3d12_pRtvDescHeap->Release();
+		g_d3d12_pRtvDescHeap = nullptr;
+	}
+}
+
+static void D3D12_WaitForGpu()
+{
+	const UINT64 fence = g_d3d12_fenceLastSignaledValue;
+	g_d3d12_pCommandQueue->Signal(g_d3d12_pFence, fence);
+	g_d3d12_pFence->SetEventOnCompletion(fence, g_d3d12_hFenceEvent);
+	WaitForSingleObject(g_d3d12_hFenceEvent, INFINITE);
+}
+
+void EvtHydraHookD3D12Present(
+	IDXGISwapChain* pSwapChain,
+	UINT SyncInterval,
+	UINT Flags,
+	PHYDRAHOOK_EVT_PRE_EXTENSION Extension
+)
+{
+	(void)SyncInterval;
+	(void)Flags;
+	(void)Extension;
+
+	static auto initialized = false;
+	static bool show_overlay = true;
+	static std::once_flag init;
+
+	std::call_once(init, [&](IDXGISwapChain* pChain)
+	{
+		HydraHookEngineLogInfo("Grabbing D3D12 device from swapchain");
+
+		if (FAILED(D3D12_DEVICE_FROM_SWAPCHAIN(pChain, &g_d3d12_pDevice)))
+		{
+			HydraHookEngineLogError("Couldn't get D3D12 device from swapchain");
+			return;
+		}
+
+		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		queueDesc.NodeMask = 1;
+		if (FAILED(g_d3d12_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_d3d12_pCommandQueue))))
+		{
+			HydraHookEngineLogError("Couldn't create D3D12 command queue");
+			return;
+		}
+
+		if (FAILED(g_d3d12_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_d3d12_pCommandAllocator))))
+		{
+			HydraHookEngineLogError("Couldn't create D3D12 command allocator");
+			return;
+		}
+
+		if (FAILED(g_d3d12_pDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, g_d3d12_pCommandAllocator, nullptr, IID_PPV_ARGS(&g_d3d12_pCommandList))) ||
+			FAILED(g_d3d12_pCommandList->Close()))
+		{
+			HydraHookEngineLogError("Couldn't create D3D12 command list");
+			return;
+		}
+
+		if (FAILED(g_d3d12_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_d3d12_pFence))))
+		{
+			HydraHookEngineLogError("Couldn't create D3D12 fence");
+			return;
+		}
+
+		g_d3d12_hFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (!g_d3d12_hFenceEvent)
+		{
+			HydraHookEngineLogError("Couldn't create fence event");
+			return;
+		}
+
+		D3D12_DESCRIPTOR_HEAP_DESC srvDesc = {};
+		srvDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		srvDesc.NumDescriptors = D3D12_SRV_HEAP_SIZE;
+		srvDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		if (FAILED(g_d3d12_pDevice->CreateDescriptorHeap(&srvDesc, IID_PPV_ARGS(&g_d3d12_pSrvDescHeap))))
+		{
+			HydraHookEngineLogError("Couldn't create D3D12 SRV descriptor heap");
+			return;
+		}
+		g_d3d12_srvDescriptorIncrement = g_d3d12_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+		D3D12_CreateOverlayResources(pChain);
+
+		DXGI_SWAP_CHAIN_DESC sd;
+		pChain->GetDesc(&sd);
+
+		ImGui_ImplDX12_InitInfo init_info = {};
+		init_info.Device = g_d3d12_pDevice;
+		init_info.CommandQueue = g_d3d12_pCommandQueue;
+		init_info.NumFramesInFlight = D3D12_NUM_FRAMES_IN_FLIGHT;
+		init_info.RTVFormat = sd.BufferDesc.Format;
+		init_info.DSVFormat = DXGI_FORMAT_UNKNOWN;
+		init_info.SrvDescriptorHeap = g_d3d12_pSrvDescHeap;
+		init_info.SrvDescriptorAllocFn = D3D12_SrvDescriptorAlloc;
+		init_info.SrvDescriptorFreeFn = D3D12_SrvDescriptorFree;
+
+		if (!ImGui_ImplDX12_Init(&init_info))
+		{
+			HydraHookEngineLogError("ImGui_ImplDX12_Init failed");
+			return;
+		}
+
+		ImGui_ImplWin32_Init(sd.OutputWindow);
+		HydraHookEngineLogInfo("ImGui (DX12) initialized");
+		HookWindowProc(sd.OutputWindow);
+		initialized = true;
+
+	}, pSwapChain);
+
+	if (!initialized)
+		return;
+
+	TOGGLE_STATE(VK_F12, show_overlay);
+	if (!show_overlay)
+		return;
+
+	UINT backBufferIdx = 0;
+	IDXGISwapChain3* pSwapChain3 = nullptr;
+	if (SUCCEEDED(pSwapChain->QueryInterface(IID_PPV_ARGS(&pSwapChain3))))
+	{
+		backBufferIdx = pSwapChain3->GetCurrentBackBufferIndex();
+		pSwapChain3->Release();
+	}
+	if (backBufferIdx >= g_d3d12_numBackBuffers)
+		backBufferIdx = 0;
+
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
+	g_d3d12_pCommandAllocator->Reset();
+	g_d3d12_pCommandList->Reset(g_d3d12_pCommandAllocator, nullptr);
+
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = g_d3d12_mainRenderTargetResource[backBufferIdx];
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	g_d3d12_pCommandList->ResourceBarrier(1, &barrier);
+
+	g_d3d12_pCommandList->OMSetRenderTargets(1, &g_d3d12_mainRenderTargetDescriptor[backBufferIdx], FALSE, nullptr);
+	g_d3d12_pCommandList->SetDescriptorHeaps(1, &g_d3d12_pSrvDescHeap);
+
+	RenderScene();
+
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), g_d3d12_pCommandList);
+
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	g_d3d12_pCommandList->ResourceBarrier(1, &barrier);
+	g_d3d12_pCommandList->Close();
+
+	g_d3d12_pCommandQueue->ExecuteCommandLists(1, (ID3D12CommandList* const*)&g_d3d12_pCommandList);
+	g_d3d12_pCommandQueue->Signal(g_d3d12_pFence, ++g_d3d12_fenceLastSignaledValue);
+	D3D12_WaitForGpu();
+}
+
+void EvtHydraHookD3D12PreResizeBuffers(
+	IDXGISwapChain* pSwapChain,
+	UINT BufferCount,
+	UINT Width,
+	UINT Height,
+	DXGI_FORMAT NewFormat,
+	UINT SwapChainFlags,
+	PHYDRAHOOK_EVT_PRE_EXTENSION Extension
+)
+{
+	(void)pSwapChain;
+	(void)BufferCount;
+	(void)Width;
+	(void)Height;
+	(void)NewFormat;
+	(void)SwapChainFlags;
+	(void)Extension;
+
+	ImGui_ImplDX12_InvalidateDeviceObjects();
+	D3D12_CleanupOverlayResources();
+	g_d3d12_srvDescriptorCount = 0;
+}
+
+void EvtHydraHookD3D12PostResizeBuffers(
+	IDXGISwapChain* pSwapChain,
+	UINT BufferCount,
+	UINT Width,
+	UINT Height,
+	DXGI_FORMAT NewFormat,
+	UINT SwapChainFlags,
+	PHYDRAHOOK_EVT_POST_EXTENSION Extension
+)
+{
+	(void)BufferCount;
+	(void)Width;
+	(void)Height;
+	(void)NewFormat;
+	(void)SwapChainFlags;
+	(void)Extension;
+
+	D3D12_CreateOverlayResources(pSwapChain);
+	ImGui_ImplDX12_CreateDeviceObjects();
+}
+
+#endif
 
 #pragma endregion
 
