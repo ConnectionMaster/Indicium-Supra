@@ -42,8 +42,6 @@ SOFTWARE.
 #include <dxgi.h>
 #include <d3d12.h>
 
-/** @brief GUID for storing the D3D12 command queue in a swap chain via SetPrivateDataInterface. */
-extern const GUID HYDRAHOOK_D3D12_QUEUE_PRIVATE_DATA;
 
 /** @brief Pre-Present callback; receives extension with engine handle. */
 typedef
