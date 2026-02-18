@@ -12,6 +12,9 @@ API-Hooking and rendering framework for DirectX-based games.
 
 `HydraHook` consists of a self-contained library (DLL) which exposes a minimalistic API for rendering custom content in foreign processes eliminating the need for in-depth knowledge about Direct3D and API-hooking. The most common use-case might be drawing custom overlays on top of your games. The framework takes care about pesky tasks like detecting the DirectX version the game was built for and supports runtime-hooking (no special launcher application required).
 
+> [!CAUTION]
+> Use caution when injecting HydraHook into any game protected by anti-cheat software. API hooking and DLL injection are commonly detected by anti-cheat systems and may result in permanent bans from online services. Use only with games you own and in environments where such use is permitted.
+
 ## Supported DirectX versions
 
 - DirectX 9.0
