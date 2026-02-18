@@ -700,25 +700,23 @@ void EvtHydraHookD3D12Present(
 
 	static auto initialized = false;
 	static bool show_overlay = true;
-	static std::once_flag init;
 
-	std::call_once(init, [&](IDXGISwapChain* pChain)
+	if (!initialized)
 	{
-		HydraHookEngineLogInfo("Grabbing D3D12 device from swapchain");
+		HydraHookEngineLogInfo("Grabbing D3D12 device and command queue from swapchain");
 
-		if (FAILED(D3D12_DEVICE_FROM_SWAPCHAIN(pChain, &g_d3d12_pDevice)))
+		if (FAILED(D3D12_DEVICE_FROM_SWAPCHAIN(pSwapChain, &g_d3d12_pDevice)))
 		{
 			HydraHookEngineLogError("Couldn't get D3D12 device from swapchain");
 			return;
 		}
 
-		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-		queueDesc.NodeMask = 1;
-		if (FAILED(g_d3d12_pDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_d3d12_pCommandQueue))))
+		g_d3d12_pCommandQueue = HydraHookEngineGetD3D12CommandQueue(pSwapChain);
+		if (!g_d3d12_pCommandQueue)
 		{
-			HydraHookEngineLogError("Couldn't create D3D12 command queue");
+			HydraHookEngineLogInfo("D3D12 command queue not yet captured (mid-process injection); will retry next frame");
+			g_d3d12_pDevice->Release();
+			g_d3d12_pDevice = nullptr;
 			return;
 		}
 
@@ -759,10 +757,10 @@ void EvtHydraHookD3D12Present(
 		}
 		g_d3d12_srvDescriptorIncrement = g_d3d12_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		D3D12_CreateOverlayResources(pChain);
+		D3D12_CreateOverlayResources(pSwapChain);
 
 		DXGI_SWAP_CHAIN_DESC sd;
-		pChain->GetDesc(&sd);
+		pSwapChain->GetDesc(&sd);
 
 		ImGui_ImplDX12_InitInfo init_info = {};
 		init_info.Device = g_d3d12_pDevice;
@@ -784,8 +782,7 @@ void EvtHydraHookD3D12Present(
 		HydraHookEngineLogInfo("ImGui (DX12) initialized");
 		HookWindowProc(sd.OutputWindow);
 		initialized = true;
-
-	}, pSwapChain);
+	}
 
 	if (!initialized)
 		return;

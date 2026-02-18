@@ -309,6 +309,11 @@ HYDRAHOOK_API VOID HydraHookEngineSetD3D12EventCallbacks(PHYDRAHOOK_ENGINE Engin
 	}
 }
 
+HYDRAHOOK_API ID3D12CommandQueue* HydraHookEngineGetD3D12CommandQueue(IDXGISwapChain* pSwapChain)
+{
+	return GetD3D12CommandQueueForSwapChain(pSwapChain);
+}
+
 #endif
 
 #ifndef HYDRAHOOK_NO_COREAUDIO

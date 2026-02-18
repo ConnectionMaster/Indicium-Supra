@@ -42,5 +42,7 @@ namespace Direct3D12Hooking
         Direct3D12();
         ~Direct3D12();
         std::vector<size_t> vtable() const override;
+        /** @brief Returns the ID3D12CommandQueue vtable (for ExecuteCommandLists hook). */
+        void** commandQueueVtable() const { return *reinterpret_cast<void***>(pQueue); }
     };
 }

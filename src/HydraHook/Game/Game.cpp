@@ -38,6 +38,9 @@ using namespace HydraHook::Core::Exceptions;
 #include <Game/Hook/Direct3D9.h>
 #include <Game/Hook/Direct3D9Ex.h>
 #include <Game/Hook/DXGI.h>
+#include <dxgi.h>
+#include <dxgi1_2.h>
+#include <d3d12.h>
 #include <Game/Hook/Direct3D10.h>
 #include <Game/Hook/Direct3D11.h>
 #include <Game/Hook/Direct3D12.h>
@@ -64,11 +67,19 @@ using namespace HydraHook::Core::Exceptions;
 // 
 #include <mutex>
 #include <memory>
+#include <unordered_map>
 
 //
 // Logging
 //
 #include <spdlog/spdlog.h>
+
+#ifndef HYDRAHOOK_NO_D3D12
+static std::mutex g_d3d12QueueMapMutex;
+static std::unordered_map<IDXGISwapChain*, ID3D12CommandQueue*> g_d3d12SwapChainToQueue;
+/// Runtime capture: device -> queue (for mid-process injection when CreateSwapChain already ran)
+static std::unordered_map<ID3D12Device*, ID3D12CommandQueue*> g_d3d12DeviceToQueue;
+#endif
 
 // NOTE: DirectInput hooking is technically implemented but not really useful
 // #define HOOK_DINPUT8
@@ -147,6 +158,9 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
     // D3D12 Hooks
     // 
 #ifndef HYDRAHOOK_NO_D3D12
+    static Hook<CallConvention::stdcall_t, HRESULT, IUnknown*, IUnknown*, DXGI_SWAP_CHAIN_DESC*, IDXGISwapChain**> createSwapChain12Hook;
+    static Hook<CallConvention::stdcall_t, HRESULT, IUnknown*, IUnknown*, HWND, const DXGI_SWAP_CHAIN_DESC1*, const DXGI_SWAP_CHAIN_FULLSCREEN_DESC*, IDXGIOutput*, IDXGISwapChain1**> createSwapChainForHwnd12Hook;
+    static Hook<CallConvention::stdcall_t, void, ID3D12CommandQueue*, UINT, ID3D12CommandList* const*> executeCommandLists12Hook;
     static Hook<CallConvention::stdcall_t, HRESULT, IDXGISwapChain*, UINT, UINT> swapChainPresent12Hook;
     static Hook<CallConvention::stdcall_t, HRESULT, IDXGISwapChain*, const DXGI_MODE_DESC*> swapChainResizeTarget12Hook;
     static Hook<CallConvention::stdcall_t, HRESULT, IDXGISwapChain*, UINT, UINT, UINT, DXGI_FORMAT, UINT> swapChainResizeBuffers12Hook;
@@ -886,8 +900,97 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
     {
         try
         {
+            IDXGIFactory2* pFactory = nullptr;
+            HMODULE hModDXGI = LoadLibraryW(L"dxgi.dll");
+            HRESULT hrFactory = E_FAIL;
+            if (hModDXGI)
+            {
+                auto pCreateDXGIFactory1 = reinterpret_cast<HRESULT(WINAPI*)(REFIID, void**)>(
+                    GetProcAddress(hModDXGI, "CreateDXGIFactory1"));
+                if (pCreateDXGIFactory1)
+                    hrFactory = pCreateDXGIFactory1(IID_PPV_ARGS(&pFactory));
+            }
+            if (SUCCEEDED(hrFactory) && pFactory)
+            {
+                void** pFactoryVtbl = *reinterpret_cast<void***>(pFactory);
+                constexpr int CreateSwapChainIndex = 10;
+                constexpr int CreateSwapChainForHwndIndex = 14;
+
+                createSwapChain12Hook.apply(reinterpret_cast<size_t>(pFactoryVtbl[CreateSwapChainIndex]), [](
+                    IUnknown* pFactoryThis,
+                    IUnknown* pDevice,
+                    DXGI_SWAP_CHAIN_DESC* pDesc,
+                    IDXGISwapChain** ppSwapChain
+                ) -> HRESULT
+                {
+                    const auto ret = createSwapChain12Hook.call_orig(pFactoryThis, pDevice, pDesc, ppSwapChain);
+                    if (SUCCEEDED(ret) && ppSwapChain && *ppSwapChain && pDevice)
+                    {
+                        ID3D12CommandQueue* pQueue = nullptr;
+                        if (SUCCEEDED(pDevice->QueryInterface(IID_PPV_ARGS(&pQueue))))
+                        {
+                            std::lock_guard<std::mutex> lock(g_d3d12QueueMapMutex);
+                            g_d3d12SwapChainToQueue[*ppSwapChain] = pQueue;
+                        }
+                    }
+                    return ret;
+                });
+
+                createSwapChainForHwnd12Hook.apply(reinterpret_cast<size_t>(pFactoryVtbl[CreateSwapChainForHwndIndex]), [](
+                    IUnknown* pFactoryThis,
+                    IUnknown* pDevice,
+                    HWND hWnd,
+                    const DXGI_SWAP_CHAIN_DESC1* pDesc,
+                    const DXGI_SWAP_CHAIN_FULLSCREEN_DESC* pFullscreenDesc,
+                    IDXGIOutput* pRestrictToOutput,
+                    IDXGISwapChain1** ppSwapChain
+                ) -> HRESULT
+                {
+                    const auto ret = createSwapChainForHwnd12Hook.call_orig(pFactoryThis, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain);
+                    if (SUCCEEDED(ret) && ppSwapChain && *ppSwapChain && pDevice)
+                    {
+                        ID3D12CommandQueue* pQueue = nullptr;
+                        if (SUCCEEDED(pDevice->QueryInterface(IID_PPV_ARGS(&pQueue))))
+                        {
+                            std::lock_guard<std::mutex> lock(g_d3d12QueueMapMutex);
+                            g_d3d12SwapChainToQueue[*ppSwapChain] = pQueue;
+                        }
+                    }
+                    return ret;
+                });
+
+                logger->info("Hooking IDXGIFactory::CreateSwapChain/CreateSwapChainForHwnd for D3D12 queue capture");
+                pFactory->Release();
+            }
+
             const std::unique_ptr<Direct3D12Hooking::Direct3D12> d3d12(new Direct3D12Hooking::Direct3D12);
             auto vtable = d3d12->vtable();
+
+            // Hook ExecuteCommandLists to capture the game's queue at runtime (supports mid-process injection)
+            void** pQueueVtbl = d3d12->commandQueueVtable();
+            constexpr int ExecuteCommandListsIndex = 10;
+            executeCommandLists12Hook.apply(reinterpret_cast<size_t>(pQueueVtbl[ExecuteCommandListsIndex]), [](
+                ID3D12CommandQueue* pQueue,
+                UINT NumCommandLists,
+                ID3D12CommandList* const* ppCommandLists
+            ) -> void
+            {
+                if (pQueue)
+                {
+                    ID3D12Device* pDevice = nullptr;
+                    if (SUCCEEDED(pQueue->GetDevice(IID_PPV_ARGS(&pDevice))) && pDevice)
+                    {
+                        std::lock_guard<std::mutex> lock(g_d3d12QueueMapMutex);
+                        if (g_d3d12DeviceToQueue[pDevice])
+                            g_d3d12DeviceToQueue[pDevice]->Release();
+                        pQueue->AddRef();
+                        g_d3d12DeviceToQueue[pDevice] = pQueue;
+                        pDevice->Release();
+                    }
+                }
+                executeCommandLists12Hook.call_orig(pQueue, NumCommandLists, ppCommandLists);
+            });
+            logger->info("Hooking ID3D12CommandQueue::ExecuteCommandLists for runtime queue capture");
 
             logger->info("Hooking IDXGISwapChain::Present");
 
@@ -1206,6 +1309,36 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
     // Decrease host DLL reference count and exit thread
     // 
     FreeLibraryAndExitThread(engine->HostInstance, 0);
+}
+
+ID3D12CommandQueue* GetD3D12CommandQueueForSwapChain(IDXGISwapChain* pSwapChain)
+{
+#ifndef HYDRAHOOK_NO_D3D12
+	if (!pSwapChain)
+		return nullptr;
+
+	std::lock_guard<std::mutex> lock(g_d3d12QueueMapMutex);
+	// 1. Early injection: captured from CreateSwapChain
+	auto it = g_d3d12SwapChainToQueue.find(pSwapChain);
+	if (it != g_d3d12SwapChainToQueue.end() && it->second)
+	{
+		it->second->AddRef();
+		return it->second;
+	}
+	// 2. Mid-process injection: captured from ExecuteCommandLists at runtime
+	ID3D12Device* pDevice = nullptr;
+	if (SUCCEEDED(pSwapChain->GetDevice(IID_PPV_ARGS(&pDevice))) && pDevice)
+	{
+		auto devIt = g_d3d12DeviceToQueue.find(pDevice);
+		pDevice->Release();
+		if (devIt != g_d3d12DeviceToQueue.end() && devIt->second)
+		{
+			devIt->second->AddRef();
+			return devIt->second;
+		}
+	}
+#endif
+	return nullptr;
 }
 
 #ifdef HOOK_DINPUT8

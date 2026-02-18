@@ -42,6 +42,9 @@ SOFTWARE.
 #include <dxgi.h>
 #include <d3d12.h>
 
+/** @brief GUID for storing the D3D12 command queue in a swap chain via SetPrivateDataInterface. */
+extern const GUID HYDRAHOOK_D3D12_QUEUE_PRIVATE_DATA;
+
 /** @brief Pre-Present callback; receives extension with engine handle. */
 typedef
 _Function_class_(EVT_HYDRAHOOK_D3D12_PRE_PRESENT)
@@ -184,6 +187,26 @@ VOID FORCEINLINE HYDRAHOOK_D3D12_EVENT_CALLBACKS_INIT(
 {
     ZeroMemory(Callbacks, sizeof(HYDRAHOOK_D3D12_EVENT_CALLBACKS));
 }
+
+/**
+ * @brief Registers Direct3D 12 render pipeline callbacks.
+ * @param[in] Engine Valid engine handle.
+ * @param[in] Callbacks Callback collection; NULL pointers are ignored.
+ */
+HYDRAHOOK_API VOID HydraHookEngineSetD3D12EventCallbacks(
+    _In_ PHYDRAHOOK_ENGINE Engine,
+    _In_ PHYDRAHOOK_D3D12_EVENT_CALLBACKS Callbacks
+);
+
+/**
+ * @brief Returns the D3D12 command queue for a swap chain (for overlay rendering).
+ * Supports mid-process injection: the queue is captured at runtime via ExecuteCommandLists.
+ * @param[in] pSwapChain The swap chain (e.g. from Present callback).
+ * @return The command queue with AddRef, or NULL if not yet captured. Caller must Release.
+ */
+HYDRAHOOK_API ID3D12CommandQueue* HydraHookEngineGetD3D12CommandQueue(
+    _In_ IDXGISwapChain* pSwapChain
+);
 
 #endif
 

@@ -352,22 +352,6 @@ extern "C" {
 
 #endif
 
-#ifndef HYDRAHOOK_NO_D3D12
-
-    /**
-     * @brief Registers Direct3D 12 render pipeline callbacks.
-     * @param[in] Engine Valid engine handle.
-     * @param[in] Callbacks Callback collection; NULL pointers are ignored.
-     */
-    HYDRAHOOK_API VOID HydraHookEngineSetD3D12EventCallbacks(
-        _In_
-        PHYDRAHOOK_ENGINE Engine,
-        _In_
-        PHYDRAHOOK_D3D12_EVENT_CALLBACKS Callbacks
-    );
-
-#endif
-
 #ifndef HYDRAHOOK_NO_COREAUDIO
 
     /**
