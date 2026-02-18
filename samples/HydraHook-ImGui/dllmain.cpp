@@ -52,19 +52,17 @@ t_WindowProc OriginalWindowProc = nullptr;
 PHYDRAHOOK_ENGINE engine = nullptr;
 
 /**
- * \fn  BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
+ * @brief DLL entry point that initializes or shuts down the HydraHook engine.
  *
- * \brief   DLL main entry point. Only HYDRAHOOK engine initialization or shutdown should happen
- *          here to avoid deadlocks.
+ * Initialization (DLL_PROCESS_ATTACH) creates and configures the HydraHook engine
+ * and registers the game-hook callback. Shutdown (DLL_PROCESS_DETACH) destroys
+ * the engine and releases resources. Do not perform other work here to avoid
+ * potential deadlocks (e.g., avoid heavy initialization or thread operations).
  *
- * \author  Benjamin "Nefarius" Hï¿½glinger
- * \date    16.06.2018
- *
- * \param   hInstance   The instance handle.
- * \param   dwReason    The call reason.
- * \param   parameter3  Unused.
- *
- * \return  TRUE on success, FALSE otherwise (will abort loading the library).
+ * @param hInstance Module instance handle provided by the OS.
+ * @param dwReason  Reason code for the call (e.g., DLL_PROCESS_ATTACH, DLL_PROCESS_DETACH).
+ * @param         Unused parameter reserved by the loader.
+ * @return TRUE on success, FALSE otherwise.
  */
 BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 {
@@ -115,17 +113,14 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID)
 }
 
 /**
- * \fn	void EvtHydraHookGameHooked( PHYDRAHOOK_ENGINE EngineHandle, const HYDRAHOOK_D3D_VERSION GameVersion )
+ * @brief Initializes ImGui and registers Direct3D event callbacks for the detected rendering version.
  *
- * \brief	Gets called when the games' rendering pipeline has successfully been hooked and the
- * 			rendering callbacks are about to get fired. The detected version of the used
- * 			rendering objects is reported as well.
+ * Creates a Dear ImGui context, applies default styling, prepares per-API callback structures
+ * for D3D9/D3D10/D3D11 (and D3D12 on 64-bit builds) and registers the appropriate callbacks
+ * with the provided HydraHook engine according to the detected GameVersion.
  *
- * \author	Benjamin "Nefarius" Hï¿½glinger
- * \date	16.06.2018
- *
- * \param	EngineHandle	Handle of the engine.
- * \param	GameVersion 	The detected DirectX/Direct3D version.
+ * @param EngineHandle Handle to the HydraHook engine used to register event callbacks.
+ * @param GameVersion Detected Direct3D version for which to install the event callbacks.
  */
 void EvtHydraHookGameHooked(
 	PHYDRAHOOK_ENGINE EngineHandle,
@@ -596,6 +591,15 @@ static UINT g_d3d12_srvDescriptorIncrement = 0;
 static UINT g_d3d12_numBackBuffers = D3D12_NUM_BACK_BUFFERS;
 static UINT g_d3d12_srvDescriptorCount = 0;
 
+/**
+ * @brief Allocates the next available shader-visible SRV descriptor from the internal DX12 descriptor heap.
+ *
+ * Attempts to produce CPU and GPU descriptor handles for a new SRV descriptor and advances the internal allocation index.
+ * If the descriptor heap is exhausted, the function returns without modifying the output handles.
+ *
+ * @param out_cpu Pointer to receive the CPU descriptor handle for the allocated SRV.
+ * @param out_gpu Pointer to receive the GPU descriptor handle for the allocated SRV.
+ */
 static void D3D12_SrvDescriptorAlloc(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu, D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu)
 {
 	(void)info;
@@ -610,6 +614,16 @@ static void D3D12_SrvDescriptorAlloc(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DE
 	*out_gpu = gpu;
 }
 
+/**
+ * @brief Releases a previously allocated SRV descriptor back to the ImGui DX12 descriptor allocator.
+ *
+ * This function is provided to return an SRV descriptor (CPU/GPU handles) to the allocator associated
+ * with the given ImGui_ImplDX12_InitInfo. In the current implementation this operation is a no-op.
+ *
+ * @param info Pointer to the ImGui DX12 initialization info that owns the descriptor heap.
+ * @param cpu_handle CPU descriptor handle of the SRV to release.
+ * @param gpu_handle GPU descriptor handle of the SRV to release.
+ */
 static void D3D12_SrvDescriptorFree(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
 {
 	(void)info;
@@ -617,6 +631,18 @@ static void D3D12_SrvDescriptorFree(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DES
 	(void)gpu_handle;
 }
 
+/**
+ * @brief Creates RTV descriptor heap and render target views for the swap chain's back buffers.
+ *
+ * Initializes and stores render-target resources and descriptors used by the overlay:
+ * - updates g_d3d12_numBackBuffers to the swap chain buffer count (clamped to D3D12_NUM_BACK_BUFFERS),
+ * - creates an RTV descriptor heap and records g_d3d12_rtvDescriptorSize,
+ * - creates an RTV for each back buffer and stores the ID3D12Resource* and CPU descriptor handle in
+ *   g_d3d12_mainRenderTargetResource and g_d3d12_mainRenderTargetDescriptor respectively.
+ *
+ * On failure (unable to obtain a back buffer, create the descriptor heap, or retrieve a swap-chain buffer),
+ * an error is logged and the function returns early; partially created resources are not fully populated.
+ */
 static void D3D12_CreateOverlayResources(IDXGISwapChain* pSwapChain)
 {
 	ID3D12Resource* pBackBuffer = nullptr;
@@ -664,6 +690,12 @@ static void D3D12_CreateOverlayResources(IDXGISwapChain* pSwapChain)
 	pBackBuffer->Release();
 }
 
+/**
+ * @brief Releases and clears D3D12 overlay render target resources and the RTV descriptor heap.
+ *
+ * Frees any back-buffer resources stored in g_d3d12_mainRenderTargetResource (up to
+ * g_d3d12_numBackBuffers) and releases the g_d3d12_pRtvDescHeap, setting the freed pointers to nullptr.
+ */
 static void D3D12_CleanupOverlayResources()
 {
 	for (UINT i = 0; i < g_d3d12_numBackBuffers; i++)
@@ -681,6 +713,12 @@ static void D3D12_CleanupOverlayResources()
 	}
 }
 
+/**
+ * @brief Blocks the CPU until the GPU has completed work up to the last signaled fence value.
+ *
+ * Signals the command queue with the last recorded fence value, sets an event to be signaled
+ * when the fence reaches that value, and waits on that event indefinitely.
+ */
 static void D3D12_WaitForGpu()
 {
 	const UINT64 fence = g_d3d12_fenceLastSignaledValue;
@@ -689,6 +727,20 @@ static void D3D12_WaitForGpu()
 	WaitForSingleObject(g_d3d12_hFenceEvent, INFINITE);
 }
 
+/**
+ * @brief Renders an ImGui overlay into the provided D3D12 swap chain during Present.
+ *
+ * Initializes D3D12/ImGui on first invocation (device, command allocator/list, fence,
+ * descriptor heaps, and overlay render targets) and on each subsequent invocation
+ * records and executes GPU commands to transition the current back buffer, render
+ * the ImGui frame, and transition the buffer back for presentation while synchronizing
+ * with the GPU.
+ *
+ * @param pSwapChain The DXGI swap chain to render the overlay into.
+ * @param SyncInterval Ignored by this hook.
+ * @param Flags Ignored by this hook.
+ * @param Extension Unused hook extension parameter.
+ */
 void EvtHydraHookD3D12Present(
 	IDXGISwapChain* pSwapChain,
 	UINT SyncInterval,
@@ -836,6 +888,19 @@ void EvtHydraHookD3D12Present(
 	D3D12_WaitForGpu();
 }
 
+/**
+ * @brief Handle a Direct3D12 pre-resize-buffers event by invalidating ImGui device objects and cleaning overlay resources.
+ *
+ * Invalidates ImGui DX12 device objects, releases any D3D12 overlay resources created for the current swap chain, and resets the internal SRV descriptor allocation counter to zero.
+ *
+ * @param pSwapChain Pointer to the swap chain that will be resized.
+ * @param BufferCount Number of buffers in the swap chain after resize.
+ * @param Width New back buffer width.
+ * @param Height New back buffer height.
+ * @param NewFormat New DXGI format for the back buffers.
+ * @param SwapChainFlags Flags that affect swap chain behavior.
+ * @param Extension Reserved extension data provided by the hook framework.
+ */
 void EvtHydraHookD3D12PreResizeBuffers(
 	IDXGISwapChain* pSwapChain,
 	UINT BufferCount,
@@ -859,6 +924,14 @@ void EvtHydraHookD3D12PreResizeBuffers(
 	g_d3d12_srvDescriptorCount = 0;
 }
 
+/**
+ * @brief Recreates D3D12 overlay resources and ImGui DX12 device objects after a swap-chain resize.
+ *
+ * Uses the provided swap chain to (re)create render-target descriptors and other overlay resources, then
+ * recreates ImGui DX12 device objects so the overlay can render with the new swap-chain configuration.
+ *
+ * @param pSwapChain Swap chain used to recreate overlay resources.
+ */
 void EvtHydraHookD3D12PostResizeBuffers(
 	IDXGISwapChain* pSwapChain,
 	UINT BufferCount,
@@ -886,6 +959,17 @@ void EvtHydraHookD3D12PostResizeBuffers(
 
 #pragma region WNDPROC Hooking
 
+/**
+ * @brief Installs hooks for window-procedure dispatch to intercept input and forward to ImGui.
+ *
+ * Creates and enables hooks for DefWindowProcW, DefWindowProcA, and the specified window's
+ * GWLP_WNDPROC, and stores the original function pointers in `OriginalDefWindowProc` and
+ * `OriginalWindowProc` for later unhooking or forwarding.
+ *
+ * @note This function has effect only when `WNDPROC_HOOK` is enabled at build time.
+ *
+ * @param hWnd Handle to the target window whose window procedure will be hooked.
+ */
 void HookWindowProc(HWND hWnd)
 {
 #ifdef WNDPROC_HOOK
@@ -973,6 +1057,12 @@ LRESULT WINAPI DetourWindowProc(
 
 #pragma region Main content rendering
 
+/**
+ * @brief Renders the ImGui overlay/demo UI containing plots and widgets.
+ *
+ * Displays an ImGui window with frame-time plots, line plots and histograms (including a selectable function and sample count),
+ * an "Animate" toggle, and an animated progress bar with textual label. Submits ImGui draw data by calling ImGui::Render().
+ */
 void RenderScene()
 {
 	static std::once_flag flag;
