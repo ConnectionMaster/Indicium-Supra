@@ -92,7 +92,7 @@ EVT_HYDRAHOOK_D3D12_POST_RESIZE_BUFFERS EvtHydraHookD3D12PostResizeBuffers;
  *
  * \brief	Overly complicated key toggle helper
  *
- * \author	Benjamin "Nefarius" Hï¿½glinger-Stelzer
+ * \author	Benjamin "Nefarius" Höglinger-Stelzer
  * \date	7/09/2018
  *
  * \param 		  	key   	The key.
