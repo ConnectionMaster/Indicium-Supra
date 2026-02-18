@@ -1,5 +1,19 @@
 version: 4.0.{build}.0
 image: Visual Studio 2022
+skip_commits:
+  files:
+    - '**/*.md'
+    - '**/*.png'
+    - '**/*.jpg'
+    - '**/*.jpeg'
+    - '**/*.gif'
+    - '**/*.svg'
+    - '**/*.ico'
+    - '**/*.webp'
+    - '**/*.bmp'
+    - '**/*.tiff'
+    - '**/*.tif'
+    - assets/
 platform:
 - Win32
 - x64
