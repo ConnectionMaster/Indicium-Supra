@@ -604,7 +604,11 @@ static void D3D12_SrvDescriptorAlloc(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DE
 {
 	(void)info;
 	if (g_d3d12_srvDescriptorCount >= D3D12_SRV_HEAP_SIZE)
+	{
+		*out_cpu = {};
+		*out_gpu = {};
 		return;
+	}
 	D3D12_CPU_DESCRIPTOR_HANDLE cpu = g_d3d12_pSrvDescHeap->GetCPUDescriptorHandleForHeapStart();
 	D3D12_GPU_DESCRIPTOR_HANDLE gpu = g_d3d12_pSrvDescHeap->GetGPUDescriptorHandleForHeapStart();
 	cpu.ptr += g_d3d12_srvDescriptorCount * g_d3d12_srvDescriptorIncrement;
@@ -631,25 +635,23 @@ static void D3D12_SrvDescriptorFree(ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DES
 	(void)gpu_handle;
 }
 
+static void D3D12_CleanupOverlayResources();
+
 /**
  * @brief Creates RTV descriptor heap and render target views for the swap chain's back buffers.
  *
- * Initializes and stores render-target resources and descriptors used by the overlay:
- * - updates g_d3d12_numBackBuffers to the swap chain buffer count (clamped to D3D12_NUM_BACK_BUFFERS),
- * - creates an RTV descriptor heap and records g_d3d12_rtvDescriptorSize,
- * - creates an RTV for each back buffer and stores the ID3D12Resource* and CPU descriptor handle in
- *   g_d3d12_mainRenderTargetResource and g_d3d12_mainRenderTargetDescriptor respectively.
+ * Initializes and stores render-target resources and descriptors used by the overlay.
+ * On failure, logs an error and returns false; caller must call D3D12_CleanupInitResources.
  *
- * On failure (unable to obtain a back buffer, create the descriptor heap, or retrieve a swap-chain buffer),
- * an error is logged and the function returns early; partially created resources are not fully populated.
+ * @return true on success, false on failure.
  */
-static void D3D12_CreateOverlayResources(IDXGISwapChain* pSwapChain)
+static bool D3D12_CreateOverlayResources(IDXGISwapChain* pSwapChain)
 {
 	ID3D12Resource* pBackBuffer = nullptr;
 	if (FAILED(D3D12_BACKBUFFER_FROM_SWAPCHAIN(pSwapChain, &pBackBuffer, 0)))
 	{
 		HydraHookEngineLogError("Couldn't get back buffer from swapchain");
-		return;
+		return false;
 	}
 
 	DXGI_SWAP_CHAIN_DESC sd;
@@ -667,7 +669,7 @@ static void D3D12_CreateOverlayResources(IDXGISwapChain* pSwapChain)
 	{
 		pBackBuffer->Release();
 		HydraHookEngineLogError("Couldn't create RTV descriptor heap");
-		return;
+		return false;
 	}
 
 	g_d3d12_rtvDescriptorSize = g_d3d12_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -678,9 +680,10 @@ static void D3D12_CreateOverlayResources(IDXGISwapChain* pSwapChain)
 		ID3D12Resource* pBuffer = nullptr;
 		if (FAILED(pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pBuffer))))
 		{
+			D3D12_CleanupOverlayResources();
 			pBackBuffer->Release();
 			HydraHookEngineLogError("Couldn't get swap chain buffer %u", i);
-			return;
+			return false;
 		}
 		g_d3d12_pDevice->CreateRenderTargetView(pBuffer, nullptr, rtvHandle);
 		g_d3d12_mainRenderTargetResource[i] = pBuffer;
@@ -688,6 +691,7 @@ static void D3D12_CreateOverlayResources(IDXGISwapChain* pSwapChain)
 		rtvHandle.ptr += g_d3d12_rtvDescriptorSize;
 	}
 	pBackBuffer->Release();
+	return true;
 }
 
 /**
@@ -714,15 +718,29 @@ static void D3D12_CleanupOverlayResources()
 }
 
 /**
+ * @brief Releases all D3D12 init resources (device, queue, allocator, list, fence, heaps).
+ * Call before early return from the initialization block to avoid leaks.
+ */
+static void D3D12_CleanupInitResources()
+{
+	D3D12_CleanupOverlayResources();
+	if (g_d3d12_pSrvDescHeap) { g_d3d12_pSrvDescHeap->Release(); g_d3d12_pSrvDescHeap = nullptr; }
+	if (g_d3d12_hFenceEvent) { CloseHandle(g_d3d12_hFenceEvent); g_d3d12_hFenceEvent = nullptr; }
+	if (g_d3d12_pFence) { g_d3d12_pFence->Release(); g_d3d12_pFence = nullptr; }
+	if (g_d3d12_pCommandList) { g_d3d12_pCommandList->Release(); g_d3d12_pCommandList = nullptr; }
+	if (g_d3d12_pCommandAllocator) { g_d3d12_pCommandAllocator->Release(); g_d3d12_pCommandAllocator = nullptr; }
+	if (g_d3d12_pCommandQueue) { g_d3d12_pCommandQueue->Release(); g_d3d12_pCommandQueue = nullptr; }
+	if (g_d3d12_pDevice) { g_d3d12_pDevice->Release(); g_d3d12_pDevice = nullptr; }
+}
+
+/**
  * @brief Blocks the CPU until the GPU has completed work up to the last signaled fence value.
  *
- * Signals the command queue with the last recorded fence value, sets an event to be signaled
- * when the fence reaches that value, and waits on that event indefinitely.
+ * Waits on the fence event for g_d3d12_fenceLastSignaledValue (signaled by the caller before invoking).
  */
 static void D3D12_WaitForGpu()
 {
 	const UINT64 fence = g_d3d12_fenceLastSignaledValue;
-	g_d3d12_pCommandQueue->Signal(g_d3d12_pFence, fence);
 	g_d3d12_pFence->SetEventOnCompletion(fence, g_d3d12_hFenceEvent);
 	WaitForSingleObject(g_d3d12_hFenceEvent, INFINITE);
 }
@@ -769,14 +787,14 @@ void EvtHydraHookD3D12Present(
 		if (!g_d3d12_pCommandQueue)
 		{
 			HydraHookEngineLogInfo("D3D12 command queue not yet captured (mid-process injection); will retry next frame");
-			g_d3d12_pDevice->Release();
-			g_d3d12_pDevice = nullptr;
+			D3D12_CleanupInitResources();
 			return;
 		}
 
 		if (FAILED(g_d3d12_pDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&g_d3d12_pCommandAllocator))))
 		{
 			HydraHookEngineLogError("Couldn't create D3D12 command allocator");
+			D3D12_CleanupInitResources();
 			return;
 		}
 
@@ -784,12 +802,14 @@ void EvtHydraHookD3D12Present(
 			FAILED(g_d3d12_pCommandList->Close()))
 		{
 			HydraHookEngineLogError("Couldn't create D3D12 command list");
+			D3D12_CleanupInitResources();
 			return;
 		}
 
 		if (FAILED(g_d3d12_pDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&g_d3d12_pFence))))
 		{
 			HydraHookEngineLogError("Couldn't create D3D12 fence");
+			D3D12_CleanupInitResources();
 			return;
 		}
 
@@ -797,6 +817,7 @@ void EvtHydraHookD3D12Present(
 		if (!g_d3d12_hFenceEvent)
 		{
 			HydraHookEngineLogError("Couldn't create fence event");
+			D3D12_CleanupInitResources();
 			return;
 		}
 
@@ -807,11 +828,16 @@ void EvtHydraHookD3D12Present(
 		if (FAILED(g_d3d12_pDevice->CreateDescriptorHeap(&srvDesc, IID_PPV_ARGS(&g_d3d12_pSrvDescHeap))))
 		{
 			HydraHookEngineLogError("Couldn't create D3D12 SRV descriptor heap");
+			D3D12_CleanupInitResources();
 			return;
 		}
 		g_d3d12_srvDescriptorIncrement = g_d3d12_pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		D3D12_CreateOverlayResources(pSwapChain);
+		if (!D3D12_CreateOverlayResources(pSwapChain))
+		{
+			D3D12_CleanupInitResources();
+			return;
+		}
 
 		DXGI_SWAP_CHAIN_DESC sd;
 		pSwapChain->GetDesc(&sd);
@@ -829,6 +855,7 @@ void EvtHydraHookD3D12Present(
 		if (!ImGui_ImplDX12_Init(&init_info))
 		{
 			HydraHookEngineLogError("ImGui_ImplDX12_Init failed");
+			D3D12_CleanupInitResources();
 			return;
 		}
 

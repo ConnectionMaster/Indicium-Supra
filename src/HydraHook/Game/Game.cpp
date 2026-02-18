@@ -973,6 +973,8 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
             // Hook ExecuteCommandLists to capture the game's queue at runtime (supports mid-process injection)
             void** pQueueVtbl = d3d12->commandQueueVtable();
+            if (pQueueVtbl)
+            {
             constexpr int ExecuteCommandListsIndex = 10;
             executeCommandLists12Hook.apply(reinterpret_cast<size_t>(pQueueVtbl[ExecuteCommandListsIndex]), [](
                 ID3D12CommandQueue* pQueue,
@@ -986,8 +988,9 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                     if (SUCCEEDED(pQueue->GetDevice(IID_PPV_ARGS(&pDevice))) && pDevice)
                     {
                         std::lock_guard<std::mutex> lock(g_d3d12QueueMapMutex);
-                        if (g_d3d12DeviceToQueue[pDevice])
-                            g_d3d12DeviceToQueue[pDevice]->Release();
+                        auto it = g_d3d12DeviceToQueue.find(pDevice);
+                        if (it != g_d3d12DeviceToQueue.end() && it->second)
+                            it->second->Release();
                         pQueue->AddRef();
                         g_d3d12DeviceToQueue[pDevice] = pQueue;
                         pDevice->Release();
@@ -996,6 +999,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
                 executeCommandLists12Hook.call_orig(pQueue, NumCommandLists, ppCommandLists);
             });
             logger->info("Hooking ID3D12CommandQueue::ExecuteCommandLists for runtime queue capture");
+            }
 
             logger->info("Hooking IDXGISwapChain::Present");
 
@@ -1283,6 +1287,9 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 #endif
 
 #ifndef HYDRAHOOK_NO_D3D12
+        createSwapChain12Hook.remove();
+        createSwapChainForHwnd12Hook.remove();
+        executeCommandLists12Hook.remove();
         swapChainPresent12Hook.remove();
         swapChainResizeTarget12Hook.remove();
         swapChainResizeBuffers12Hook.remove();
