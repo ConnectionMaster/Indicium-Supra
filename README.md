@@ -84,6 +84,10 @@ Road Redemption, 64-Bit
 
 ![RoadRedemptionEarlyAccess_2017-08-14_14-06-21.png](https://lh3.googleusercontent.com/-v2Ao0kCoTvg/WZGSQeniK8I/AAAAAAAAAN0/TXpCVv8pLFoGsuKlwnBRufFuG_ZXaZmRACHMYCw/s0/RoadRedemptionEarlyAccess_2017-08-14_14-06-21.png)
 
+### DirectX 12
+
+Supported on 64-bit builds. The ImGui sample automatically detects and hooks DX12 games.
+
 ## Sources
 
 ### Dependencies

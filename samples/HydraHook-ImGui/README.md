@@ -1,6 +1,6 @@
 # HydraHook-ImGui
 
-ImGui overlay sample for DirectX 9, 10, and 11 games.
+ImGui overlay sample for DirectX 9, 10, 11, and 12 games.
 
 ## About
 
