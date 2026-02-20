@@ -48,7 +48,7 @@ after_build:
     $extractRoot = "$env:TEMP\Injector"
     $srcPath = Join-Path $extractRoot (Join-Path $injectorFolder "Injector.exe")
     if (-not (Test-Path $srcPath)) { $srcPath = Join-Path $extractRoot (Join-Path $env:PLATFORM "Injector.exe") }
-    $destDir = "bin\$env:PLATFORM"
+    $destDir = "bin\$injectorFolder"
     Copy-Item $srcPath -Destination $destDir -Force
 artifacts:
 - path: 'bin\**\*.dll'
