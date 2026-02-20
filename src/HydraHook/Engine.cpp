@@ -59,6 +59,7 @@ SOFTWARE.
 // 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 //
 // STL
@@ -126,6 +127,15 @@ HYDRAHOOK_API HYDRAHOOK_ERROR HydraHookEngineCreate(HMODULE HostInstance, PHYDRA
 	else { tryCreateLogger(tempPath); }
 
 	auto logger = spdlog::get("HYDRAHOOK");
+	if (!logger) {
+		try {
+			logger = spdlog::stdout_color_mt("HYDRAHOOK");
+		}
+		catch (const std::exception&) {
+			free(engine);
+			return HYDRAHOOK_ERROR_CREATE_LOGGER_FAILED;
+		}
+	}
 
 #if _DEBUG
 	spdlog::set_level(spdlog::level::debug);
