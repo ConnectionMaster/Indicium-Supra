@@ -29,11 +29,23 @@ before_build:
 - cmd: .\tools\vpatch.exe --stamp-version "%APPVEYOR_BUILD_VERSION%" --target-file ".\samples\HydraHook-DirectXTK\HydraHook-DirectXTK.rc" --resource.file-version --resource.product-version
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\HydraHook.sln
+after_build:
+- ps: |
+    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/nefarius/Injector/releases/latest"
+    $zipUrl = "https://github.com/nefarius/Injector/releases/download/$($release.tag_name)/Injector_x86_amd64_arm64.zip"
+    $zipPath = "$env:TEMP\Injector.zip"
+    Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
+    Expand-Archive -Path $zipPath -DestinationPath "$env:TEMP\Injector" -Force
+    $srcPath = "$env:TEMP\Injector\$env:PLATFORM\Injector.exe"
+    $destDir = "bin\Release_LIB\$env:PLATFORM"
+    Copy-Item $srcPath -Destination $destDir -Force
 artifacts:
 - path: 'bin\**\*.dll'
   name: HydraHook
 - path: 'bin\**\*.spritefont'
   name: HydraHook-SpriteFont
+- path: 'bin\**\Injector.exe'
+  name: HydraHook
 deploy:
 - provider: Environment
   name: BUILDBOT
