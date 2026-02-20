@@ -70,6 +70,7 @@ extern "C" {
         HYDRAHOOK_ERROR_REFERENCE_INCREMENT_FAILED = 0xE0000006, /**< GetModuleHandleEx failed. */
         HYDRAHOOK_ERROR_CONTEXT_ALLOCATION_FAILED = 0xE0000007, /**< Custom context allocation failed. */
         HYDRAHOOK_ERROR_CREATE_EVENT_FAILED = 0xE0000008,       /**< CreateEvent failed for cancellation. */
+        HYDRAHOOK_ERROR_CREATE_LOGGER_FAILED = 0xE0000009,      /**< Failed to create fallback logger. */
 
     } HYDRAHOOK_ERROR;
 
@@ -206,14 +207,14 @@ extern "C" {
         struct
         {
             BOOL IsEnabled;       /**< TRUE to enable logging. */
-            PCSTR FilePath;      /**< Log path; supports %TEMP% etc. */
+            PCSTR FilePath;      /**< Fallback log path (e.g. %TEMP%\\HydraHook.log); used if process/DLL dirs fail. */
         } Logging;
 
     } HYDRAHOOK_ENGINE_CONFIG, *PHYDRAHOOK_ENGINE_CONFIG;
 
     /**
-     * @brief Initializes engine configuration with defaults (logging enabled, %TEMP%\\HydraHook.log).
-     * @param[in,out] EngineConfig Configuration structure to initialize.
+     * Initialize an HYDRAHOOK_ENGINE_CONFIG structure with library defaults (logging enabled; fallback log path "%TEMP%\\HydraHook.log").
+     * @param[in,out] EngineConfig Pointer to the HYDRAHOOK_ENGINE_CONFIG to initialize. Must point to a writable structure.
      */
     VOID FORCEINLINE HYDRAHOOK_ENGINE_CONFIG_INIT(
         PHYDRAHOOK_ENGINE_CONFIG EngineConfig
@@ -240,6 +241,7 @@ extern "C" {
      * @retval HYDRAHOOK_ERROR_ENGINE_ALLOCATION_FAILED malloc failed.
      * @retval HYDRAHOOK_ERROR_CREATE_EVENT_FAILED CreateEvent failed.
      * @retval HYDRAHOOK_ERROR_CREATE_THREAD_FAILED CreateThread failed.
+     * @retval HYDRAHOOK_ERROR_CREATE_LOGGER_FAILED Fallback logger creation failed.
      */
     HYDRAHOOK_API HYDRAHOOK_ERROR HydraHookEngineCreate(
         _In_ HMODULE HostInstance,

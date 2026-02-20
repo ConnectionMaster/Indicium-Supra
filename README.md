@@ -56,7 +56,7 @@ Just make sure your host library doesn't require any external dependencies not p
 
 ## Diagnostics
 
-The core library logs its progress and potential errors to the file `%TEMP%\HydraHook.log`.
+The core library logs its progress and potential errors to `HydraHook.log`. It tries to write in this order: (1) the directory of the process executable, (2) the directory of the HydraHook DLL, (3) `%TEMP%` if both prior locations fail (e.g. no write permissions).
 
 ## Demos
 
