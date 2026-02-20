@@ -213,8 +213,8 @@ extern "C" {
     } HYDRAHOOK_ENGINE_CONFIG, *PHYDRAHOOK_ENGINE_CONFIG;
 
     /**
-     * @brief Initializes engine configuration with defaults (logging enabled; log path: process dir, then DLL dir, then %TEMP%).
-     * @param[in,out] EngineConfig Configuration structure to initialize.
+     * Initialize an HYDRAHOOK_ENGINE_CONFIG structure with library defaults (logging enabled; fallback log path "%TEMP%\\HydraHook.log").
+     * @param[in,out] EngineConfig Pointer to the HYDRAHOOK_ENGINE_CONFIG to initialize. Must point to a writable structure.
      */
     VOID FORCEINLINE HYDRAHOOK_ENGINE_CONFIG_INIT(
         PHYDRAHOOK_ENGINE_CONFIG EngineConfig

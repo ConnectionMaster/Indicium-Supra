@@ -73,6 +73,24 @@ SOFTWARE.
 static std::map<HMODULE, PHYDRAHOOK_ENGINE> g_EngineHostInstances;
 
 
+/**
+ * @brief Create and initialize a HydraHook engine for a host module and start its main thread.
+ *
+ * Initializes a new engine instance for the specified host module, configures logging per
+ * the provided engine configuration, creates the engine cancellation event, launches the
+ * engine's main thread, and registers the engine in the process-wide host-instance map.
+ *
+ * @param HostInstance Handle to the host module (HMODULE) the engine will be associated with.
+ * @param EngineConfig Pointer to an engine configuration structure that controls logging and other engine options.
+ * @param Engine Optional out parameter that receives the allocated engine handle on success.
+ * @return HYDRAHOOK_ERROR_NONE on success.
+ * @return HYDRAHOOK_ERROR_ENGINE_ALREADY_ALLOCATED if an engine is already created for HostInstance.
+ * @return HYDRAHOOK_ERROR_REFERENCE_INCREMENT_FAILED if the host DLL module handle could not be obtained.
+ * @return HYDRAHOOK_ERROR_ENGINE_ALLOCATION_FAILED if engine memory allocation failed.
+ * @return HYDRAHOOK_ERROR_CREATE_LOGGER_FAILED if a suitable logger could not be created or obtained.
+ * @return HYDRAHOOK_ERROR_CREATE_EVENT_FAILED if the engine cancellation event could not be created.
+ * @return HYDRAHOOK_ERROR_CREATE_THREAD_FAILED if the engine main thread could not be created.
+ */
 HYDRAHOOK_API HYDRAHOOK_ERROR HydraHookEngineCreate(HMODULE HostInstance, PHYDRAHOOK_ENGINE_CONFIG EngineConfig, PHYDRAHOOK_ENGINE * Engine)
 {
 	//
