@@ -31,12 +31,23 @@ build:
   project: $(APPVEYOR_BUILD_FOLDER)\HydraHook.sln
 after_build:
 - ps: |
-    $release = Invoke-RestMethod -Uri "https://api.github.com/repos/nefarius/Injector/releases/latest"
-    $zipUrl = "https://github.com/nefarius/Injector/releases/download/$($release.tag_name)/Injector_x86_amd64_arm64.zip"
+    $injectorVersion = "v1.4.0"
+    $zipUrl = "https://github.com/nefarius/Injector/releases/download/$injectorVersion/Injector_x86_amd64_arm64.zip"
     $zipPath = "$env:TEMP\Injector.zip"
-    Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath -UseBasicParsing
+    $downloadParams = @{ Uri = $zipUrl; OutFile = $zipPath; UseBasicParsing = $true }
+    if ($env:GITHUB_TOKEN) { $downloadParams["Headers"] = @{ Authorization = "Bearer $env:GITHUB_TOKEN" } }
+    Invoke-WebRequest @downloadParams
+    if ($env:INJECTOR_SHA256) {
+      $actualHash = (Get-FileHash -Path $zipPath -Algorithm SHA256).Hash
+      if ($actualHash -ne $env:INJECTOR_SHA256) {
+        throw "Injector zip checksum mismatch. Expected $env:INJECTOR_SHA256, got $actualHash"
+      }
+    }
     Expand-Archive -Path $zipPath -DestinationPath "$env:TEMP\Injector" -Force
-    $srcPath = "$env:TEMP\Injector\$env:PLATFORM\Injector.exe"
+    $injectorFolder = switch ($env:PLATFORM) { "Win32" { "x86" } default { $env:PLATFORM } }
+    $extractRoot = "$env:TEMP\Injector"
+    $srcPath = Join-Path $extractRoot (Join-Path $injectorFolder "Injector.exe")
+    if (-not (Test-Path $srcPath)) { $srcPath = Join-Path $extractRoot (Join-Path $env:PLATFORM "Injector.exe") }
     $destDir = "bin\Release_LIB\$env:PLATFORM"
     Copy-Item $srcPath -Destination $destDir -Force
 artifacts:
