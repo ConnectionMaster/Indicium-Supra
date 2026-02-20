@@ -206,13 +206,13 @@ extern "C" {
         struct
         {
             BOOL IsEnabled;       /**< TRUE to enable logging. */
-            PCSTR FilePath;      /**< Log path; supports %TEMP% etc. */
+            PCSTR FilePath;      /**< Fallback log path (e.g. %TEMP%\\HydraHook.log); used if process/DLL dirs fail. */
         } Logging;
 
     } HYDRAHOOK_ENGINE_CONFIG, *PHYDRAHOOK_ENGINE_CONFIG;
 
     /**
-     * @brief Initializes engine configuration with defaults (logging enabled, %TEMP%\\HydraHook.log).
+     * @brief Initializes engine configuration with defaults (logging enabled; log path: process dir, then DLL dir, then %TEMP%).
      * @param[in,out] EngineConfig Configuration structure to initialize.
      */
     VOID FORCEINLINE HYDRAHOOK_ENGINE_CONFIG_INIT(

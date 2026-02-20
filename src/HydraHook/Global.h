@@ -80,6 +80,43 @@ namespace HydraHook
 
                 return std::string(procName);
             }
+
+            /**
+             * @brief Returns the directory containing the main process executable.
+             * @return Directory path (e.g. C:\Program Files\Game\), or empty string on failure.
+             */
+            inline std::string get_process_directory()
+            {
+                char path[MAX_PATH];
+                if (0 == GetModuleFileNameA(NULL, path, MAX_PATH)) {
+                    return std::string();
+                }
+                std::string s(path);
+                const auto pos = s.find_last_of("\\/");
+                if (pos == std::string::npos) {
+                    return std::string();
+                }
+                return s.substr(0, pos + 1);
+            }
+
+            /**
+             * @brief Returns the directory containing the given module (e.g. the DLL).
+             * @param hMod Module handle (HMODULE).
+             * @return Directory path, or empty string on failure.
+             */
+            inline std::string get_module_directory(HMODULE hMod)
+            {
+                char path[MAX_PATH];
+                if (0 == GetModuleFileNameA(hMod, path, MAX_PATH)) {
+                    return std::string();
+                }
+                std::string s(path);
+                const auto pos = s.find_last_of("\\/");
+                if (pos == std::string::npos) {
+                    return std::string();
+                }
+                return s.substr(0, pos + 1);
+            }
         };
     };
 };

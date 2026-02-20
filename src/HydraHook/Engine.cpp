@@ -105,12 +105,27 @@ HYDRAHOOK_API HYDRAHOOK_ERROR HydraHookEngineCreate(HMODULE HostInstance, PHYDRA
 	CopyMemory(&engine->EngineConfig, EngineConfig, sizeof(HYDRAHOOK_ENGINE_CONFIG));
 
 	//
-	// Set up logging
+	// Set up logging: try process directory first, then DLL directory, then %TEMP%
 	//
-	auto logger = spdlog::basic_logger_mt(
-		"HYDRAHOOK",
-		HydraHook::Core::Util::expand_environment_variables(EngineConfig->Logging.FilePath)
-	);
+	std::string processDir = HydraHook::Core::Util::get_process_directory();
+	std::string dllDir = HydraHook::Core::Util::get_module_directory(HostInstance);
+	std::string tempPath = HydraHook::Core::Util::expand_environment_variables(EngineConfig->Logging.FilePath);
+
+	auto tryCreateLogger = [](const std::string& path) -> bool {
+		try {
+			(void)spdlog::basic_logger_mt("HYDRAHOOK", path);
+			return true;
+		}
+		catch (const std::exception&) {
+			return false;
+		}
+	};
+
+	if (!processDir.empty() && tryCreateLogger(processDir + "HydraHook.log")) { /* ok */ }
+	else if (!dllDir.empty() && tryCreateLogger(dllDir + "HydraHook.log")) { /* ok */ }
+	else { tryCreateLogger(tempPath); }
+
+	auto logger = spdlog::get("HYDRAHOOK");
 
 #if _DEBUG
 	spdlog::set_level(spdlog::level::debug);
