@@ -571,6 +571,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 #pragma region D3D10
 
     static HYDRAHOOK_D3D_VERSION deviceVersion = HydraHookDirect3DVersionUnknown;
+    size_t dxgiPresentAddress = 0;
 
 #ifndef HYDRAHOOK_NO_D3D10
 
@@ -646,6 +647,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                 return ret;
             });
+            dxgiPresentAddress = vtable[DXGIHooking::Present];
 
             logger->info("Hooking IDXGISwapChain::ResizeTarget");
 
@@ -776,7 +778,16 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
         {
             const std::unique_ptr<Direct3D11Hooking::Direct3D11> d3d11(new Direct3D11Hooking::Direct3D11);
             auto vtable = d3d11->vtable();
+            const size_t d3d11PresentAddress = vtable[DXGIHooking::Present];
 
+            // D3D10 and D3D11 share the same DXGI swap chain implementation. Applying both would
+            // create a duplicate hook chain; the D3D10 hook already handles both via device detection.
+            if (dxgiPresentAddress != 0 && d3d11PresentAddress == dxgiPresentAddress)
+            {
+                logger->info("Skipping D3D11 DXGI hooks (same vtable as D3D10; D3D10 hook handles both)");
+            }
+            else
+            {
             logger->info("Hooking IDXGISwapChain::Present");
 
             swapChainPresent11Hook.apply(vtable[DXGIHooking::Present], [](
@@ -895,6 +906,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                 return ret;
             });
+            }
         }
         catch (DetourException& ex)
         {
