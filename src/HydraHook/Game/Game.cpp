@@ -581,7 +581,6 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
         {
             const std::unique_ptr<Direct3D10Hooking::Direct3D10> d3d10(new Direct3D10Hooking::Direct3D10);
             auto vtable = d3d10->vtable();
-            dxgiPresentAddress = vtable[DXGIHooking::Present];
 
             logger->info("Hooking IDXGISwapChain::Present");
 
@@ -648,6 +647,7 @@ DWORD WINAPI HydraHookMainThread(LPVOID Params)
 
                 return ret;
             });
+            dxgiPresentAddress = vtable[DXGIHooking::Present];
 
             logger->info("Hooking IDXGISwapChain::ResizeTarget");
 
